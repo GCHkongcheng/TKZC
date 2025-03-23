@@ -1,0 +1,748 @@
+/* 基础样式设置 */
+:root {
+    --primary-color: #4c8bf5;
+    --primary-light: #d6e4ff;
+    --primary-dark: #3a6bc5;
+    --secondary-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --grey-light: #f8f9fa;
+    --grey-medium: #e9ecef;
+    --grey-dark: #6c757d;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --radius: 8px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 头部样式 */
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+    animation: slideInFromTop 0.5s ease;
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    animation: slideInFromBottom 0.5s ease 0.2s both;
+}
+
+@keyframes slideInFromTop {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInFromBottom {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 步骤导航 */
+.steps-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 50px;
+    background-color: var(--grey-light);
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid var(--grey-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    transition: var(--transition);
+}
+
+.step-circle.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.step-circle.completed {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: white;
+}
+
+.step-line {
+    flex: 1;
+    height: 3px;
+    background-color: var(--grey-dark);
+    margin: 0 10px;
+    transition: var(--transition);
+}
+
+.step-line.active {
+    background-color: var(--primary-color);
+}
+
+.step-name {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--grey-dark);
+    transition: var(--transition);
+}
+
+.step-name.active {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* 通用区域样式 */
+.section {
+    padding: 30px;
+    animation: fadeIn 0.5s ease;
+}
+
+.section h2 {
+    margin-bottom: 20px;
+    color: var(--primary-dark);
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.section h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 3px;
+    background-color: var(--primary-color);
+}
+
+.hidden {
+    display: none;
+}
+
+/* 按钮样式 */
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 600;
+    transition: var(--transition);
+    padding: 10px 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.next-btn {
+    background-color: var(--primary-color);
+    color: white;
+    float: right;
+}
+
+.next-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 139, 245, 0.3);
+}
+
+.back-btn {
+    background-color: var(--grey-medium);
+    color: var(--grey-dark);
+}
+
+.back-btn:hover {
+    background-color: var(--grey-dark);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.save-btn {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.restart-btn {
+    background-color: var(--warning-color);
+    color: #212529;
+}
+
+.restart-btn:hover {
+    background-color: #e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+}
+
+.btn-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* 步骤1: 任务输入 */
+.task-input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#taskInput {
+    flex: 1;
+    padding: 12px 15px;
+    border: 2px solid var(--grey-medium);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+#taskInput:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 139, 245, 0.25);
+}
+
+#addTaskBtn {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 20px;
+}
+
+#addTaskBtn:hover {
+    background-color: var(--primary-dark);
+}
+
+.task-error {
+    color: var(--danger-color);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    font-weight: 500;
+    min-height: 20px;
+}
+
+.task-list {
+    list-style: none;
+    margin-bottom: 30px;
+}
+
+.task-item {
+    background-color: var(--grey-light);
+    border-radius: var(--radius);
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideIn 0.3s ease;
+    transition: var(--transition);
+    border-left: 4px solid var(--primary-color);
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.task-item:hover {
+    background-color: white;
+    box-shadow: var(--shadow);
+}
+
+.task-name {
+    font-weight: 500;
+    flex: 1;
+}
+
+.task-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.task-actions button {
+    background-color: transparent;
+    color: var(--grey-dark);
+    padding: 5px;
+    font-size: 1rem;
+}
+
+.task-actions button:hover {
+    color: var(--danger-color);
+}
+
+/* 步骤2: 优先级排序 */
+.priority-list {
+    list-style: none;
+}
+
+.priority-item {
+    background-color: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    cursor: grab;
+    position: relative;
+    border-left: 5px solid var(--primary-color);
+}
+
+.priority-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.priority-item:active {
+    cursor: grabbing;
+}
+
+.priority-handle {
+    padding: 10px;
+    color: var(--grey-dark);
+    margin-right: 15px;
+}
+
+.priority-rank {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+/* 步骤3: 任务详细信息 */
+.task-details-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.task-detail-card {
+    background-color: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--primary-color);
+    animation: fadeIn 0.3s ease;
+}
+
+.task-detail-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.task-detail-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+.task-detail-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    flex: 1;
+}
+
+.task-detail-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--grey-dark);
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid var(--grey-medium);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 139, 245, 0.25);
+}
+
+/* 滑块样式 */
+.slider-container {
+    padding: 0 10px;
+}
+
+.range-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 5px;
+    background: var(--grey-medium);
+    outline: none;
+    margin-top: 10px;
+}
+
+.range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.range-slider::-webkit-slider-thumb:hover {
+    background: var(--primary-dark);
+    transform: scale(1.1);
+}
+
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--grey-dark);
+}
+
+/* 日程规划表样式 */
+.schedule-container {
+    background-color: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.calendar-header button {
+    background-color: transparent;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.calendar-header button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: 600;
+    padding: 10px 0;
+    background-color: var(--grey-light);
+    border-bottom: 1px solid var(--grey-medium);
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-gap: 1px;
+    background-color: var(--grey-medium);
+}
+
+.calendar-day {
+    height: 80px;
+    background-color: white;
+    padding: 5px;
+    position: relative;
+    transition: var(--transition);
+}
+
+.calendar-day:hover {
+    background-color: var(--primary-light);
+}
+
+.calendar-day.today {
+    background-color: rgba(76, 139, 245, 0.1);
+}
+
+.calendar-day.has-tasks {
+    position: relative;
+}
+
+.calendar-day.has-tasks::after {
+    content: '';
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+}
+
+.calendar-day-number {
+    font-size: 0.9rem;
+    color: var(--grey-dark);
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}
+
+.calendar-tasks {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.calendar-task-dot {
+    width: 100%;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: white;
+    margin-bottom: 2px;
+}
+
+/* 日程详细视图 */
+.day-schedule-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.day-schedule-header button {
+    background-color: transparent;
+    color: white;
+    margin-right: 15px;
+}
+
+.day-schedule-content {
+    padding: 20px;
+}
+
+.day-task {
+    background-color: white;
+    border-radius: var(--radius);
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid var(--primary-color);
+    animation: fadeIn 0.3s ease;
+}
+
+.day-task-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.day-task-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.day-task-time {
+    color: var(--grey-dark);
+    font-size: 0.9rem;
+}
+
+.day-task-details {
+    color: var(--grey-dark);
+    font-size: 0.95rem;
+}
+
+.day-empty-message {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--grey-dark);
+}
+
+/* 尾部样式 */
+footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--grey-dark);
+    font-size: 0.9rem;
+    margin-top: 30px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .steps-container {
+        padding: 20px;
+    }
+    
+    .step-name {
+        font-size: 0.75rem;
+    }
+    
+    .section {
+        padding: 20px;
+    }
+    
+    .task-input-container {
+        flex-direction: column;
+    }
+    
+    .btn-group.final-btns {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn-group.final-btns button {
+        width: 100%;
+    }
+}
+
+/* 动画 */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 1.5s infinite;
+}
+
+/* 拖拽样式 */
+.sortable-ghost {
+    opacity: 0.5;
+    background-color: var(--grey-light) !important;
+}
+
+.sortable-drag {
+    opacity: 0.8;
+    transform: rotate(2deg);
+}
+
+/* Flatpickr 样式覆盖 */
+.flatpickr-calendar {
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.flatpickr-day.selected {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* 任务颜色标记 */
+.priority-high {
+    border-left-color: var(--danger-color) !important;
+}
+
+.priority-medium {
+    border-left-color: var(--warning-color) !important;
+}
+
+.priority-low {
+    border-left-color: var(--secondary-color) !important;
+}
+
+.task-dot-high {
+    background-color: var(--danger-color);
+}
+
+.task-dot-medium {
+    background-color: var(--warning-color);
+}
+
+.task-dot-low {
+    background-color: var(--secondary-color);
+}
