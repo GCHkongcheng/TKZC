@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日期计算器 - 时间工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: #4a90e2;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .calculator-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .calculator-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .calculator-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .calculator-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .calculator-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .calculator-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-input {
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        
+        .form-select {
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .form-select:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .calculate-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 1rem;
+        }
+        
+        .calculate-btn:hover {
+            background-color: #3a80d2;
+        }
+        
+        .result-container {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #eee;
+            display: none;
+        }
+        
+        .result-title {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .result-label {
+            color: #555;
+        }
+        
+        .result-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tab {
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom-color: #4a90e2;
+            color: #4a90e2;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="back-btn">← 返回</a>
+        <h1>日期计算器</h1>
+    </header>
+    
+    <div class="container">
+        <div class="calculator-card">
+            <div class="calculator-header">
+                <h2 class="calculator-title">多功能日期计算器</h2>
+                <p class="calculator-description">计算日期差异、添加或减去时间、查找工作日等</p>
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="date-difference">日期差异</div>
+                <div class="tab" data-tab="add-subtract">添加/减去时间</div>
+                <div class="tab" data-tab="weekday-finder">工作日查找</div>
+                <div class="tab" data-tab="date-converter">日期转换</div>
+            </div>
+            
+            <!-- 日期差异计算 -->
+            <div class="tab-content active" id="date-difference">
+                <div class="calculator-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">开始日期</label>
+                            <input type="date" class="form-input" id="startDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">结束日期</label>
+                            <input type="date" class="form-input" id="endDate">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">包含结束日期</label>
+                        <select class="form-select" id="includeEndDate">
+                            <option value="yes">是</option>
+                            <option value="no">否</option>
+                        </select>
+                    </div>
+                    
+                    <button class="calculate-btn" id="calculateDifference">计算差异</button>
+                    
+                    <div class="result-container" id="differenceResult">
+                        <h3 class="result-title">计算结果</h3>
+                        <div class="result-item">
+                            <span class="result-label">总天数</span>
+                            <span class="result-value" id="totalDays">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">工作日数量</span>
+                            <span class="result-value" id="workDays">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">周末数量</span>
+                            <span class="result-value" id="weekendDays">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">总周数</span>
+                            <span class="result-value" id="totalWeeks">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">总月数</span>
+                            <span class="result-value" id="totalMonths">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">总年数</span>
+                            <span class="result-value" id="totalYears">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 添加/减去时间 -->
+            <div class="tab-content" id="add-subtract">
+                <div class="calculator-form">
+                    <div class="form-group">
+                        <label class="form-label">起始日期</label>
+                        <input type="date" class="form-input" id="baseDate">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">操作</label>
+                            <select class="form-select" id="operation">
+                                <option value="add">添加</option>
+                                <option value="subtract">减去</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">数值</label>
+                            <input type="number" class="form-input" id="timeValue" min="0" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">单位</label>
+                            <select class="form-select" id="timeUnit">
+                                <option value="days">天</option>
+                                <option value="weeks">周</option>
+                                <option value="months">月</option>
+                                <option value="years">年</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">仅计算工作日</label>
+                        <select class="form-select" id="workdaysOnly">
+                            <option value="no">否</option>
+                            <option value="yes">是</option>
+                        </select>
+                    </div>
+                    
+                    <button class="calculate-btn" id="calculateAddSubtract">计算结果</button>
+                    
+                    <div class="result-container" id="addSubtractResult">
+                        <h3 class="result-title">计算结果</h3>
+                        <div class="result-item">
+                            <span class="result-label">结果日期</span>
+                            <span class="result-value" id="resultDate">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">星期几</span>
+                            <span class="result-value" id="resultWeekday">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">是否为工作日</span>
+                            <span class="result-value" id="isWorkday">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 工作日查找 -->
+            <div class="tab-content" id="weekday-finder">
+                <div class="calculator-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">年份</label>
+                            <input type="number" class="form-input" id="weekdayYear" min="1900" max="2100">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">月份</label>
+                            <select class="form-select" id="weekdayMonth">
+                                <option value="1">1月</option>
+                                <option value="2">2月</option>
+                                <option value="3">3月</option>
+                                <option value="4">4月</option>
+                                <option value="5">5月</option>
+                                <option value="6">6月</option>
+                                <option value="7">7月</option>
+                                <option value="8">8月</option>
+                                <option value="9">9月</option>
+                                <option value="10">10月</option>
+                                <option value="11">11月</option>
+                                <option value="12">12月</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">查找</label>
+                            <select class="form-select" id="weekdayOccurrence">
+                                <option value="1">第一个</option>
+                                <option value="2">第二个</option>
+                                <option value="3">第三个</option>
+                                <option value="4">第四个</option>
+                                <option value="5">第五个</option>
+                                <option value="last">最后一个</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">星期几</label>
+                            <select class="form-select" id="weekdayToFind">
+                                <option value="1">星期一</option>
+                                <option value="2">星期二</option>
+                                <option value="3">星期三</option>
+                                <option value="4">星期四</option>
+                                <option value="5">星期五</option>
+                                <option value="6">星期六</option>
+                                <option value="0">星期日</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" id="findWeekday">查找日期</button>
+                    
+                    <div class="result-container" id="weekdayResult">
+                        <h3 class="result-title">查找结果</h3>
+                        <div class="result-item">
+                            <span class="result-label">日期</span>
+                            <span class="result-value" id="foundDate">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 日期转换 -->
+            <div class="tab-content" id="date-converter">
+                <div class="calculator-form">
+                    <div class="form-group">
+                        <label class="form-label">日期</label>
+                        <input type="date" class="form-input" id="dateToConvert">
+                    </div>
+                    
+                    <button class="calculate-btn" id="convertDate">转换日期</button>
+                    
+                    <div class="result-container" id="conversionResult">
+                        <h3 class="result-title">转换结果</h3>
+                        <div class="result-item">
+                            <span class="result-label">ISO 8601</span>
+                            <span class="result-value" id="isoDate">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Unix 时间戳</span>
+                            <span class="result-value" id="unixTimestamp">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">儒略日</span>
+                            <span class="result-value" id="julianDay">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">一年中的第几天</span>
+                            <span class="result-value" id="dayOfYear">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">一年中的第几周</span>
+                            <span class="result-value" id="weekOfYear">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2023 时间工具 | 让时间管理更简单</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取当前日期
+            const today = new Date();
+            const todayFormatted = today.toISOString().split('T')[0];
+            
+            // 设置默认日期
+            document.getElementById('startDate').value = todayFormatted;
+            document.getElementById('endDate').value = todayFormatted;
+            document.getElementById('baseDate').value = todayFormatted;
+            document.getElementById('dateToConvert').value = todayFormatted;
+            
+            // 设置默认年月
+            document.getElementById('weekdayYear').value = today.getFullYear();
+            document.getElementById('weekdayMonth').value = today.getMonth() + 1;
+            
+            // 标签切换
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // 移除所有活动标签
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // 激活当前标签
+                    this.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // 计算日期差异
+            document.getElementById('calculateDifference').addEventListener('click', function() {
+                const startDate = new Date(document.getElementById('startDate').value);
+                const endDate = new Date(document.getElementById('endDate').value);
+                const includeEndDate = document.getElementById('includeEndDate').value === 'yes';
+                
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                    alert('请输入有效的日期');
+                    return;
+                }
+                
+                // 计算天数差异
+                const diffTime = endDate.getTime() - startDate.getTime();
+                let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (includeEndDate) {
+                    diffDays += 1;
+                }
+                
+                // 计算工作日和周末
+                let workDays = 0;
+                let weekendDays = 0;
+                
+                const tempDate = new Date(startDate);
+                for (let i = 0; i < diffDays; i++) {
+                    const dayOfWeek = tempDate.getDay();
+                    if (dayOfWeek === 0 || dayOfWeek === 6) {
+                        weekendDays++;
+                    } else {
+                        workDays++;
+                    }
+                    tempDate.setDate(tempDate.getDate() + 1);
+                }
+                
+                // 计算周数
+                const weeks = (diffDays / 7).toFixed(1);
+                
+                // 计算月数
+                const years = endDate.getFullYear() - startDate.getFullYear();
+                const months = endDate.getMonth() - startDate.getMonth() + (years * 12);
+                const monthsDecimal = (diffDays / 30.44).toFixed(1);
+                
+                // 计算年数
+                const yearsDecimal = (diffDays / 365.25).toFixed(2);
+                
+                // 显示结果
+                document.getElementById('totalDays').textContent = diffDays;
+                document.getElementById('workDays').textContent = workDays;
+                document.getElementById('weekendDays').textContent = weekendDays;
+                document.getElementById('totalWeeks').textContent = weeks;
+                document.getElementById('totalMonths').textContent = monthsDecimal;
+                document.getElementById('totalYears').textContent = yearsDecimal;
+                
+                document.getElementById('differenceResult').style.display = 'block';
+            });
+            
+            // 添加/减去时间
+            document.getElementById('calculateAddSubtract').addEventListener('click', function() {
+                const baseDate = new Date(document.getElementById('baseDate').value);
+                const operation = document.getElementById('operation').value;
+                const timeValue = parseInt(document.getElementById('timeValue').value);
+                const timeUnit = document.getElementById('timeUnit').value;
+                const workdaysOnly = document.getElementById('workdaysOnly').value === 'yes';
+                
+                if (isNaN(baseDate.getTime()) || isNaN(timeValue)) {
+                    alert('请输入有效的日期和数值');
+                    return;
+                }
+                
+                let resultDate = new Date(baseDate);
+                
+                if (workdaysOnly) {
+                    // 仅计算工作日
+                    let daysToAdd = timeValue;
+                    let direction = operation === 'add' ? 1 : -1;
+                    
+                    while (daysToAdd > 0) {
+                        resultDate.setDate(resultDate.getDate() + direction);
+                        const dayOfWeek = resultDate.getDay();
+                        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                            daysToAdd--;
+                        }
+                    }
+                } else {
+                    // 计算所有日期
+                    if (timeUnit === 'days') {
+                        const days = operation === 'add' ? timeValue : -timeValue;
+                        resultDate.setDate(resultDate.getDate() + days);
+                    } else if (timeUnit === 'weeks') {
+                        const weeks = operation === 'add' ? timeValue : -timeValue;
+                        resultDate.setDate(resultDate.getDate() + (weeks * 7));
+                    } else if (timeUnit === 'months') {
+                        const months = operation === 'add' ? timeValue : -timeValue;
+                        resultDate.setMonth(resultDate.getMonth() + months);
+                    } else if (timeUnit === 'years') {
+                        const years = operation === 'add' ? timeValue : -timeValue;
+                        resultDate.setFullYear(resultDate.getFullYear() + years);
+                    }
+                }
+                
+                // 格式化日期
+                const options = { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    weekday: 'long' 
+                };
+                const formattedDate = resultDate.toLocaleDateString('zh-CN', options);
+                
+                // 判断是否为工作日
+                const dayOfWeek = resultDate.getDay();
+                const isWorkday = dayOfWeek !== 0 && dayOfWeek !== 6;
+                
+                // 显示结果
+                document.getElementById('resultDate').textContent = formattedDate;
+                document.getElementById('resultWeekday').textContent = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][dayOfWeek];
+                document.getElementById('isWorkday').textContent = isWorkday ? '是' : '否';
+                
+                document.getElementById('addSubtractResult').style.display = 'block';
+            });
+            
+            // 工作日查找
+            document.getElementById('findWeekday').addEventListener('click', function() {
+                const year = parseInt(document.getElementById('weekdayYear').value);
+                const month = parseInt(document.getElementById('weekdayMonth').value) - 1; // 月份从0开始
+                const occurrence = document.getElementById('weekdayOccurrence').value;
+                const weekday = parseInt(document.getElementById('weekdayToFind').value);
+                
+                if (isNaN(year) || year < 1900 || year > 2100) {
+                    alert('请输入有效的年份 (1900-2100)');
+                    return;
+                }
+                
+                let resultDate;
+                
+                if (occurrence === 'last') {
+                    // 查找最后一个指定的星期几
+                    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+                    let lastOccurrence = null;
+                    
+                    for (let day = 1; day <= lastDayOfMonth; day++) {
+                        const date = new Date(year, month, day);
+                        if (date.getDay() === weekday) {
+                            lastOccurrence = date;
+                        }
+                    }
+                    
+                    resultDate = lastOccurrence;
+                } else {
+                    // 查找第n个指定的星期几
+                    const occurrenceNum = parseInt(occurrence);
+                    let count = 0;
+                    let foundDate = null;
+                    
+                    for (let day = 1; day <= 31; day++) {
+                        const date = new Date(year, month, day);
+                        
+                        // 如果日期无效或已经到了下个月，则退出循环
+                        if (date.getMonth() !== month) break;
+                        
+                        if (date.getDay() === weekday) {
+                            count++;
+                            if (count === occurrenceNum) {
+                                foundDate = date;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    resultDate = foundDate;
+                }
+                
+                if (resultDate) {
+                    // 格式化日期
+                    const options = { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric', 
+                        weekday: 'long' 
+                    };
+                    const formattedDate = resultDate.toLocaleDateString('zh-CN', options);
+                    
+                    document.getElementById('foundDate').textContent = formattedDate;
+                } else {
+                    document.getElementById('foundDate').textContent = '未找到符合条件的日期';
+                }
+                
+                document.getElementById('weekdayResult').style.display = 'block';
+            });
+            
+            // 日期转换
+            document.getElementById('convertDate').addEventListener('click', function() {
+                const dateToConvert = new Date(document.getElementById('dateToConvert').value);
+                
+                if (isNaN(dateToConvert.getTime())) {
+                    alert('请输入有效的日期');
+                    return;
+                }
+                
+                // ISO 8601 格式
+                const isoDate = dateToConvert.toISOString();
+                
+                // Unix 时间戳 (毫秒)
+                const unixTimestamp = dateToConvert.getTime();
+                
+                // 儒略日计算
+                const julianDay = Math.floor((dateToConvert.getTime() / 86400000) + 2440587.5);
+                
+                // 一年中的第几天
+                const startOfYear = new Date(dateToConvert.getFullYear(), 0, 0);
+                const diff = dateToConvert - startOfYear;
+                const dayOfYear = Math.floor(diff / 86400000);
+                
+                // 一年中的第几周 (ISO 周)
+                const date = new Date(dateToConvert);
+                date.setHours(0, 0, 0, 0);
+                date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+                const week1 = new Date(date.getFullYear(), 0, 4);
+                const weekOfYear = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+                
+                // 显示结果
+                document.getElementById('isoDate').textContent = isoDate;
+                document.getElementById('unixTimestamp').textContent = unixTimestamp;
+                document.getElementById('julianDay').textContent = julianDay;
+                document.getElementById('dayOfYear').textContent = dayOfYear;
+                document.getElementById('weekOfYear').textContent = weekOfYear;
+                
+                document.getElementById('conversionResult').style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

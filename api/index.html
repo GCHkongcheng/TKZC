@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API大全</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 36px;
+        }
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .hitokoto {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            min-height: 80px;
+        }
+        .source {
+            font-size: 16px;
+            color: #666;
+            font-style: italic;
+            min-height: 40px;
+        }
+        .refresh-btn {
+            margin-top: 20px;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .refresh-btn:hover {
+            background-color: #45a049;
+        }
+        .image-container {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .weather-info, .joke-content, .history-content, .quote-content {
+            min-height: 150px;
+            text-align: left;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1>API功能大全</h1>
+            <p>集合多种实用API功能于一体的展示页面</p>
+        </div>
+        
+        <div class="card-container">
+            <!-- 一言卡片 -->
+            <div class="card">
+                <h2>每日一言</h2>
+                <div class="hitokoto" id="hitokoto">加载中...</div>
+                <div class="source" id="source"></div>
+                <button class="refresh-btn" onclick="fetchHitokoto()">刷新一言</button>
+            </div>
+            
+            <!-- 金山词霸每日一句 -->
+            <div class="card">
+                <h2>金山词霸每日一句</h2>
+                <div class="image-container" id="iciba-image">
+                    <img src="https://picsum.photos/400/200" alt="加载中...">
+                </div>
+                <div class="quote-content" id="iciba-content">点击获取每日一句</div>
+                <button class="refresh-btn" onclick="getIcibaDaily()">获取每日一句</button>
+            </div>
+            <!-- 天气卡片 -->
+            <div class="card">
+                <h2>今日天气</h2>
+                <div class="weather-info" id="weather-info">点击获取天气信息</div>
+                <button class="refresh-btn" onclick="getWeather()">获取天气</button>
+            </div>
+            
+            <!-- 必应每日壁纸 -->
+            <div class="card">
+                <h2>必应每日壁纸</h2>
+                <div class="image-container" id="bing-image">
+                    <img src="https://picsum.photos/400/200" alt="加载中...">
+                </div>
+                <div id="bing-title">加载中...</div>
+                <button class="refresh-btn" onclick="getBingImage()">获取壁纸</button>
+            </div>
+            
+            <!-- 随机笑话 -->
+            <div class="card">
+                <h2>随机笑话</h2>
+                <div class="joke-content" id="joke-content">点击获取随机笑话</div>
+                <button class="refresh-btn" onclick="getRandomJoke()">获取笑话</button>
+            </div>
+            
+            <!-- 历史上的今天 -->
+            <div class="card">
+                <h2>历史上的今天</h2>
+                <div class="history-content" id="history-content">点击查看历史上的今天</div>
+                <button class="refresh-btn" onclick="getHistoryToday()">查看历史</button>
+            </div>
+            
+            <!-- 随机名言 -->
+            <div class="card">
+                <h2>随机名言</h2>
+                <div class="quote-content" id="quote-content">点击获取随机名言</div>
+                <button class="refresh-btn" onclick="getRandomQuote()">获取名言</button>
+            </div>
+            
+            <!-- 随机狗狗图片 -->
+            <div class="card">
+                <h2>随机狗狗图片</h2>
+                <div class="image-container" id="dog-image">
+                    <img src="https://picsum.photos/400/200" alt="点击获取狗狗图片">
+                </div>
+                <button class="refresh-btn" onclick="getRandomDog()">换一张</button>
+            </div>
+            
+            <!-- 随机猫咪图片 -->
+            <div class="card">
+                <h2>随机猫咪图片</h2>
+                <div class="image-container" id="cat-image">
+                    <img src="https://picsum.photos/400/200" alt="点击获取猫咪图片">
+                </div>
+                <button class="refresh-btn" onclick="getRandomCat()">换一张</button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 API功能大全 | 使用各种免费API构建</p>
+        </footer>
+    </div>
+
+    <script>
+        // 页面加载时初始化所有API
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchHitokoto();
+            getBingImage();
+            getIcibaDaily(); 
+        });
+
+        // 获取一言的函数
+        function fetchHitokoto() {
+            const hitokotoElement = document.getElementById('hitokoto');
+            const sourceElement = document.getElementById('source');
+            
+            hitokotoElement.textContent = "加载中...";
+            sourceElement.textContent = "";
+            
+            // 使用一言API
+            fetch('https://v1.hitokoto.cn')
+                .then(response => response.json())
+                .then(data => {
+                    hitokotoElement.textContent = data.hitokoto;
+                    if (data.from_who) {
+                        sourceElement.textContent = `——${data.from_who}《${data.from}》`;
+                    } else {
+                        sourceElement.textContent = `——《${data.from}》`;
+                    }
+                })
+                .catch(error => {
+                    hitokotoElement.textContent = "获取一言失败，请稍后再试";
+                    console.error('获取一言出错:', error);
+                });
+        }
+
+        
+        // 获取金山词霸每日一句
+        function getIcibaDaily() {
+            const icibaImageContainer = document.getElementById('iciba-image');
+            const icibaContent = document.getElementById('iciba-content');
+            
+            icibaContent.textContent = "获取每日一句中...";
+            
+            // 由于CORS限制，直接使用本地数据
+            useLocalIcibaData();
+            
+            // 如果需要在生产环境中使用，可以考虑:
+            // 1. 在自己的服务器上创建一个代理API
+            // 2. 使用支持CORS的第三方API
+            // 3. 使用Node.js等后端技术获取数据并提供给前端
+        }
+        
+        // 使用本地数据作为备用方案
+        function useLocalIcibaData() {
+            const icibaContent = document.getElementById('iciba-content');
+            const icibaImageContainer = document.getElementById('iciba-image');
+            
+            // 使用本地数据
+            const localData = {
+                "content": "Happy life lies in a peaceful mind.",
+                "note": "幸福的生活存在于心绪的宁静之中。",
+                "picture": "https://staticedu-wps.cache.iciba.com/image/39d9bef53e8d4ddc559d5dfbd40618f0.jpg",
+                "picture2": "https://staticedu-wps.cache.iciba.com/image/c13c845a3f6533ff44bdf1c3bf7c72c3.jpg",
+                "dateline": new Date().toISOString().slice(0, 10) // 使用当前日期
+            };
+            
+            // 显示本地数据
+            icibaImageContainer.innerHTML = `<img src="${localData.picture2 || localData.picture}" alt="每日一句配图">`;
+            icibaContent.innerHTML = `
+                <p style="font-weight: bold;">${localData.content}</p>
+                <p>${localData.note}</p>
+                <p style="font-size: 12px; color: #888;">日期: ${localData.dateline}</p>
+                <p style="font-size: 12px; color: #f00;">注：由于CORS限制，显示的是本地数据</p>
+            `;
+        }
+        
+        // 获取天气信息
+        function getWeather() {
+            const weatherInfo = document.getElementById('weather-info');
+            weatherInfo.textContent = "获取天气中...";
+            
+            // 使用免费天气API (这里使用的是天气API示例，实际使用时可能需要替换)
+            fetch('https://v0.yiketianqi.com/api?version=v61&appid=43656176&appsecret=I42og6Lm&city=北京')
+                .then(response => response.json())
+                .then(data => {
+                    weatherInfo.innerHTML = `
+                        <p>城市: ${data.city}</p>
+                        <p>天气: ${data.wea}</p>
+                        <p>温度: ${data.tem}°C</p>
+                        <p>体感温度: ${data.tem_day}°C(白天)/${data.tem_night}°C(夜间)</p>
+                        <p>风向: ${data.win}</p>
+                        <p>风力: ${data.win_speed}</p>
+                        <p>湿度: ${data.humidity}</p>
+                        <p>更新时间: ${data.update_time}</p>
+                    `;
+                })
+                .catch(error => {
+                    weatherInfo.textContent = "获取天气失败，请稍后再试";
+                    console.error('获取天气出错:', error);
+                });
+        }
+        
+        // 获取必应每日壁纸
+        function getBingImage() {
+            const bingImageContainer = document.getElementById('bing-image');
+            const bingTitle = document.getElementById('bing-title');
+            
+            // 使用必应壁纸API
+            fetch('https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN')
+                .then(response => response.json())
+                .then(data => {
+                    const imageUrl = 'https://www.bing.com' + data.images[0].url;
+                    const imageTitle = data.images[0].title;
+                    
+                    bingImageContainer.innerHTML = `<img src="${imageUrl}" alt="${imageTitle}">`;
+                    bingTitle.textContent = imageTitle;
+                })
+                .catch(error => {
+                    bingImageContainer.innerHTML = '<img src="https://picsum.photos/400/200" alt="加载失败">';
+                    bingTitle.textContent = "获取壁纸失败，请稍后再试";
+                    console.error('获取必应壁纸出错:', error);
+                });
+        }
+        
+        // 获取随机笑话
+        function getRandomJoke() {
+            const jokeContent = document.getElementById('joke-content');
+            jokeContent.textContent = "获取笑话中...";
+            
+            // 使用笑话API
+            fetch('https://api.apiopen.top/getJoke?page=1&count=1&type=text')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200 && data.result && data.result.length > 0) {
+                        jokeContent.textContent = data.result[0].text;
+                    } else {
+                        jokeContent.textContent = "获取笑话失败，请稍后再试";
+                    }
+                })
+                .catch(error => {
+                    jokeContent.textContent = "获取笑话失败，请稍后再试";
+                    console.error('获取笑话出错:', error);
+                });
+        }
+        
+        // 获取历史上的今天
+        function getHistoryToday() {
+            const historyContent = document.getElementById('history-content');
+            historyContent.textContent = "获取历史上的今天信息中...";
+            
+            // 使用历史上的今天API
+            fetch('https://api.oick.cn/lishi/api.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        let historyHtml = '<ul style="padding-left: 20px;">';
+                        // 只显示前5条历史事件
+                        const eventsToShow = data.slice(0, 5);
+                        eventsToShow.forEach(event => {
+                            historyHtml += `<li>${event.date}: ${event.title}</li>`;
+                        });
+                        historyHtml += '</ul>';
+                        historyContent.innerHTML = historyHtml;
+                    } else {
+                        historyContent.textContent = "暂无历史上的今天信息";
+                    }
+                })
+                .catch(error => {
+                    historyContent.textContent = "获取历史上的今天信息失败，请稍后再试";
+                    console.error('获取历史上的今天出错:', error);
+                });
+        }
+        
+        // 获取随机名言
+        function getRandomQuote() {
+            const quoteContent = document.getElementById('quote-content');
+            quoteContent.textContent = "获取名言中...";
+            
+            // 使用随机名言API
+            fetch('https://api.quotable.io/random')
+                .then(response => response.json())
+                .then(data => {
+                    quoteContent.innerHTML = `
+                        <p style="font-style: italic;">"${data.content}"</p>
+                        <p style="text-align: right;">—— ${data.author}</p>
+                    `;
+                })
+                .catch(error => {
+                    quoteContent.textContent = "获取名言失败，请稍后再试";
+                    console.error('获取名言出错:', error);
+                });
+        }
+        
+        // 获取随机狗狗图片
+        function getRandomDog() {
+            const dogImageContainer = document.getElementById('dog-image');
+            dogImageContainer.innerHTML = '<img src="https://picsum.photos/400/200" alt="加载中...">';
+            
+            // 使用狗狗API
+            fetch('https://dog.ceo/api/breeds/image/random')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        dogImageContainer.innerHTML = `<img src="${data.message}" alt="随机狗狗图片">`;
+                    } else {
+                        dogImageContainer.innerHTML = '<img src="https://picsum.photos/400/200" alt="加载失败">';
+                    }
+                })
+                .catch(error => {
+                    dogImageContainer.innerHTML = '<img src="https://picsum.photos/400/200" alt="加载失败">';
+                    console.error('获取狗狗图片出错:', error);
+                });
+        }
+        
+        // 获取随机猫咪图片
+        function getRandomCat() {
+            const catImageContainer = document.getElementById('cat-image');
+            catImageContainer.innerHTML = '<img src="https://picsum.photos/400/200" alt="加载中...">';
+            
+            // 使用猫咪API
+            fetch('https://api.thecatapi.com/v1/images/search')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        catImageContainer.innerHTML = `<img src="${data[0].url}" alt="随机猫咪图片">`;
+                    } else {
+                        catImageContainer.innerHTML = '<img src="https://picsum.photos/400/200" alt="加载失败">';
+                    }
+                })
+                .catch(error => {
+                    catImageContainer.innerHTML = '<img src="https://picsum.photos/400/200" alt="加载失败">';
+                    console.error('获取猫咪图片出错:', error);
+                });
+        }
+    </script>
+</body>
+</html>

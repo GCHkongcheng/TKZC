@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI对话助手</title>
+    <!-- 添加Markdown解析库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 添加代码高亮 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/highlight.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .chat-container {
+            width: 80%;
+            max-width: 800px;
+            height: 80vh;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #4285f4;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.5em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .header-button {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        .header-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: auto;
+            text-align: right;
+        }
+        .ai-message {
+            background-color: #f1f1f1;
+            margin-right: auto;
+        }
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 1em;
+            resize: none;
+            min-height: 20px;
+            max-height: 150px;
+        }
+        #send-button {
+            padding: 10px 20px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        #send-button:hover {
+            background-color: #3367d6;
+        }
+        .loading {
+            display: inline-block;
+            margin-right: auto;
+            font-style: italic;
+            color: #666;
+        }
+        .message pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        .message code {
+            font-family: 'Courier New', monospace;
+        }
+        .message img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        .message table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .message th, .message td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .message th {
+            background-color: #f2f2f2;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-actions {
+            text-align: right;
+        }
+        .form-actions button {
+            padding: 8px 15px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 90vh;
+            }
+            .message {
+                max-width: 85%;
+            }
+            .modal-content {
+                width: 90%;
+                margin: 10% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-actions">
+                <button id="settings-button" class="header-button">设置</button>
+            </div>
+            <div class="header-title">AI对话助手(deepseekV3)</div>
+            <div class="header-actions">
+                <button id="clear-button" class="header-button">清空对话</button>
+            </div>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message ai-message">
+                您好！我是AI助手，有什么可以帮助您的吗？
+            </div>
+        </div>
+        <div class="chat-input">
+            <textarea id="message-input" placeholder="请输入您的问题..." autofocus></textarea>
+            <button id="send-button">发送</button>
+        </div>
+    </div>
+
+    <!-- 设置对话框 -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>API设置</h2>
+                <span class="close">&times;</span>
+            </div>
+            <!-- 添加密码验证部分 -->
+            <div id="password-section">
+                <div class="form-group">
+                    <label for="settings-password">请输入管理密码(这是我用来调试哒！)</label>
+                    <input type="password" id="settings-password" placeholder="请输入密码">
+                </div>
+                <div class="form-actions">
+                    <button id="verify-password">验证密码</button>
+                </div>
+            </div>
+            <!-- 设置内容部分，初始隐藏 -->
+            <div id="settings-section" style="display: none;">
+                <div class="form-group">
+                    <label for="api-url">API端点</label>
+                    <input type="text" id="api-url" placeholder="https://your-ai-api-endpoint.com/chat">
+                </div>
+                <div class="form-group">
+                    <label for="api-key">API密钥</label>
+                    <input type="password" id="api-key" placeholder="您的API密钥">
+                </div>
+                <div class="form-group">
+                    <label for="model-id">模型ID</label>
+                    <input type="text" id="model-id" placeholder="模型ID">
+                </div>
+                <div class="form-actions">
+                    <button id="save-settings">保存设置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            const clearButton = document.getElementById('clear-button');
+            const settingsButton = document.getElementById('settings-button');
+            const settingsModal = document.getElementById('settings-modal');
+            const closeModal = document.querySelector('.close');
+            const saveSettings = document.getElementById('save-settings');
+            const apiUrlInput = document.getElementById('api-url');
+            const apiKeyInput = document.getElementById('api-key');
+            const modelIdInput = document.getElementById('model-id');
+            const settingsSection = document.getElementById('settings-section');
+            const passwordSection = document.getElementById('password-section');
+            const settingsPassword = document.getElementById('settings-password');
+            const verifyPasswordBtn = document.getElementById('verify-password');
+            
+            const correctPassword = "admin123"; // 可以修改为您想要的密码
+            // 从本地存储加载设置
+            let apiUrl = localStorage.getItem('apiUrl') || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+            let apiKey = localStorage.getItem('apiKey') || '069afec3-9cf5-48f7-ae22-11b8e96d8799';
+            let modelId = localStorage.getItem('modelId') || 'deepseek-v3-250324';
+            
+            // 初始化设置表单
+            apiUrlInput.value = apiUrl;
+            apiKeyInput.value = apiKey;
+            modelIdInput.value = modelId;
+            
+            // 加载历史消息
+            loadChatHistory();
+            
+            // 自动调整文本框高度
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            
+            // 验证密码
+            function verifyPassword() {
+                const password = settingsPassword.value.trim();
+                if (password === correctPassword) {
+                    // 密码正确，显示设置部分
+                    passwordSection.style.display = 'none';
+                    settingsSection.style.display = 'block';
+                    settingsPassword.value = ''; // 清空密码输入框
+                } else {
+                    alert('密码错误，请重试！');
+                }
+            }
+            
+            // 设置模态框功能
+            function openSettingsModal() {
+                settingsModal.style.display = 'block';
+                // 重置模态框状态
+                passwordSection.style.display = 'block';
+                settingsSection.style.display = 'none';
+                settingsPassword.value = '';
+            }
+            
+            function closeSettingsModal() {
+                settingsModal.style.display = 'none';
+            }
+
+            // 验证密码按钮
+            verifyPasswordBtn.addEventListener('click', verifyPassword);
+            
+            // 密码输入框按Enter键验证
+            settingsPassword.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    verifyPassword();
+                }
+            });
+
+            // 发送消息的函数
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message === '') return;
+
+                // 添加用户消息到聊天界面
+                addMessage(message, 'user');
+                
+                // 清空输入框
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                
+                // 创建AI消息容器，用于流式输出
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.className = 'message ai-message';
+                chatMessages.appendChild(aiMessageDiv);
+                
+                // 滚动到底部
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                // 调用API获取流式回复
+                fetchAIStreamResponse(message, aiMessageDiv);
+            }
+
+            // 添加消息到聊天界面
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}-message`;
+                
+                // 如果是AI消息，使用Markdown解析
+                if (sender === 'ai') {
+                    // 使用marked解析Markdown
+                    messageDiv.innerHTML = marked.parse(text);
+                    
+                    // 应用代码高亮
+                    messageDiv.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                } else {
+                    // 用户消息只处理换行符
+                    const formattedText = text.replace(/\n/g, '<br>');
+                    messageDiv.innerHTML = formattedText;
+                }
+                
+                chatMessages.appendChild(messageDiv);
+                
+                // 滚动到底部
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // 流式调用AI API获取回复
+            async function fetchAIStreamResponse(message, aiMessageDiv) {
+                try {
+                    // 获取历史消息以构建上下文
+                    const messages = [];
+                    
+                    // 添加系统消息
+                    messages.push({
+                        "role": "system", 
+                        "content": "你是人工智能助手"
+                    });
+                    
+                    // 添加用户消息
+                    messages.push({
+                        "role": "user", 
+                        "content": message
+                    });
+                    
+                    // 创建请求
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: modelId,
+                            messages: messages,
+                            stream: true
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('API请求失败');
+                    }
+                    
+                    // 处理流式响应
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder("utf-8");
+                    let fullResponse = '';
+                    
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        
+                        // 解码二进制数据
+                        const chunk = decoder.decode(value, { stream: true });
+                        
+                        // 处理SSE格式的数据
+                        const lines = chunk.split('\n');
+                        for (const line of lines) {
+                            if (line.startsWith('data:')) {
+                                try {
+                                    const data = JSON.parse(line.substring(5));
+                                    if (data.choices && data.choices.length > 0) {
+                                        const content = data.choices[0].delta?.content || '';
+                                        if (content) {
+                                            fullResponse += content;
+                                            // 使用Markdown解析实时更新内容
+                                            aiMessageDiv.innerHTML = marked.parse(fullResponse);
+                                            // 应用代码高亮
+                                            aiMessageDiv.querySelectorAll('pre code').forEach((block) => {
+                                                hljs.highlightElement(block);
+                                            });
+                                            // 滚动到底部
+                                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('解析SSE数据失败:', e);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // 保存对话历史
+                    saveChatHistory();
+                    
+                } catch (error) {
+                    console.error('API调用错误:', error);
+                    // 显示错误消息
+                    aiMessageDiv.innerHTML = `<p>抱歉，发生了错误：${error.message}</p>`;
+                    // 保存对话历史
+                    saveChatHistory();
+                }
+            }
+            
+            // 保留原来的非流式API调用函数作为备用
+            async function fetchAIResponse(message) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: modelId,
+                            messages: [
+                                {"role": "system", "content": "你是人工智能助手"},
+                                {"role": "user", "content": message}
+                            ]
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('API请求失败');
+                    }
+                    
+                    const data = await response.json();
+                    return data.choices[0].message.content || '抱歉，我无法理解您的问题。';
+                    
+                } catch (error) {
+                    console.error('API调用错误:', error);
+                    return '抱歉，我暂时无法连接到服务器。请稍后再试。';
+                }
+            }
+            
+            // 保存对话历史到本地存储
+            function saveChatHistory() {
+                const messages = [];
+                document.querySelectorAll('.message').forEach(msg => {
+                    const type = msg.classList.contains('user-message') ? 'user' : 'ai';
+                    messages.push({
+                        type: type,
+                        content: msg.innerHTML
+                    });
+                });
+                localStorage.setItem('chatHistory', JSON.stringify(messages));
+            }
+            
+            // 从本地存储加载对话历史
+            function loadChatHistory() {
+                const history = localStorage.getItem('chatHistory');
+                if (history) {
+                    try {
+                        const messages = JSON.parse(history);
+                        // 清空当前消息
+                        chatMessages.innerHTML = '';
+                        // 添加历史消息
+                        messages.forEach(msg => {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = `message ${msg.type}-message`;
+                            messageDiv.innerHTML = msg.content;
+                            chatMessages.appendChild(messageDiv);
+                        });
+                        // 滚动到底部
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    } catch (e) {
+                        console.error('加载历史记录失败:', e);
+                    }
+                }
+            }
+            
+            // 清空对话历史
+            function clearChat() {
+                if (confirm('确定要清空所有对话记录吗？')) {
+                    chatMessages.innerHTML = '';
+                    // 添加初始欢迎消息
+                    const welcomeDiv = document.createElement('div');
+                    welcomeDiv.className = 'message ai-message';
+                    welcomeDiv.textContent = '您好！我是AI助手，有什么可以帮助您的吗？';
+                    chatMessages.appendChild(welcomeDiv);
+                    // 清除本地存储
+                    localStorage.removeItem('chatHistory');
+                }
+            }
+            
+            // 设置模态框功能
+            function openSettingsModal() {
+                settingsModal.style.display = 'block';
+            }
+            
+            function closeSettingsModal() {
+                settingsModal.style.display = 'none';
+            }
+            
+            function saveApiSettings() {
+                apiUrl = apiUrlInput.value.trim();
+                apiKey = apiKeyInput.value.trim();
+                modelId = modelIdInput.value.trim();
+                
+                localStorage.setItem('apiUrl', apiUrl);
+                localStorage.setItem('apiKey', apiKey);
+                localStorage.setItem('modelId', modelId);
+                
+                closeSettingsModal();
+                alert('设置已保存');
+            }
+
+            // 点击发送按钮发送消息
+            sendButton.addEventListener('click', sendMessage);
+            
+            // 按Enter键发送消息，Shift+Enter换行
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // 清空对话按钮
+            clearButton.addEventListener('click', clearChat);
+            
+            // 设置按钮
+            settingsButton.addEventListener('click', openSettingsModal);
+            
+            // 关闭模态框
+            closeModal.addEventListener('click', closeSettingsModal);
+            window.addEventListener('click', function(event) {
+                if (event.target === settingsModal) {
+                    closeSettingsModal();
+                }
+            });
+            
+            // 保存设置
+            saveSettings.addEventListener('click', saveApiSettings);
+        });
+    </script>
+</body>
+</html>

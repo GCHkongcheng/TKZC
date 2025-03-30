@@ -1,0 +1,128 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.game-container {
+    width: 400px;
+    height: 600px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.game-header {
+    height: 50px;
+    background-color: #333;
+    color: white;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.score-container {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#game-area {
+    width: 100%;
+    height: calc(100% - 50px);
+    position: relative;
+    background-color: #f8f8f8;
+}
+
+#judge-line {
+    position: absolute;
+    bottom: 100px;
+    width: 100%;
+    height: 5px;
+    background-color: #ff5252;
+    z-index: 10;
+}
+
+.key {
+    position: absolute;
+    width: 80px;
+    height: 30px;
+    background-color: #000;
+    border-radius: 5px;
+    /* 移除原来的居中定位 */
+    /* left: 50%; */
+    /* transform: translateX(-50%); */
+    z-index: 5;
+}
+
+#game-over {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.game-over-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.game-over-content h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.game-over-content p {
+    margin-bottom: 25px;
+    font-size: 18px;
+}
+
+#restart-btn {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#restart-btn:hover {
+    background-color: #45a049;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* 修改完美命中动画，因为我们移除了transform */
+.perfect-hit {
+    animation: perfect-animation 0.3s;
+}
+
+@keyframes perfect-animation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); background-color: #4CAF50; }
+    100% { transform: scale(1); }
+}

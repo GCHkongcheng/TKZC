@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能日程规划</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-tasks"></i> 智能日程规划助手</h1>
+            <p>合理规划时间，提高工作效率</p>
+        </header>
+
+        <div id="app">
+            <!-- 步骤导航 -->
+            <div class="steps-container">
+                <div class="step" data-step="1">
+                    <div class="step-circle active">1</div>
+                    <div class="step-name">添加任务</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <div class="step-name">设置优先级</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <div class="step-name">时间安排</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="4">
+                    <div class="step-circle">4</div>
+                    <div class="step-name">日程生成</div>
+                </div>
+            </div>
+
+            <!-- 步骤1: 添加任务 -->
+            <div class="section" id="step1">
+                <h2>第一步：添加你正在进行的任务</h2>
+                <div class="task-input-container">
+                    <input type="text" id="taskInput" placeholder="输入任务名称..." maxlength="50">
+                    <button id="addTaskBtn"><i class="fas fa-plus"></i> 添加任务</button>
+                </div>
+                <div class="task-error" id="taskError"></div>
+                <ul id="taskList" class="task-list"></ul>
+                <button class="next-btn" id="step1NextBtn" disabled>下一步 <i class="fas fa-arrow-right"></i></button>
+            </div>
+
+            <!-- 步骤2: 设置任务优先级 -->
+            <div class="section hidden" id="step2">
+                <h2>第二步：设置任务重要程度</h2>
+                <p>拖动任务卡片，将最重要的放在顶部</p>
+                <ul id="priorityList" class="priority-list"></ul>
+                <div class="btn-group">
+                    <button class="back-btn" id="step2BackBtn"><i class="fas fa-arrow-left"></i> 上一步</button>
+                    <button class="next-btn" id="step2NextBtn">下一步 <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- 步骤3: 时间紧迫性和其他信息 -->
+            <div class="section hidden" id="step3">
+                <h2>第三步：设置任务详细信息</h2>
+                <div id="taskDetailsContainer" class="task-details-container"></div>
+                <div class="btn-group">
+                    <button class="back-btn" id="step3BackBtn"><i class="fas fa-arrow-left"></i> 上一步</button>
+                    <button class="next-btn" id="step3NextBtn">生成日程 <i class="fas fa-calendar-check"></i></button>
+                </div>
+            </div>
+
+            <!-- 步骤4: 日程规划表 -->
+            <div class="section hidden" id="step4">
+                <h2>你的智能日程规划表</h2>
+                <div class="schedule-container">
+                    <div class="calendar-view">
+                        <div class="calendar-header">
+                            <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                            <h3 id="currentMonth"></h3>
+                            <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="calendar-grid">
+                            <div class="calendar-weekdays">
+                                <div>周日</div>
+                                <div>周一</div>
+                                <div>周二</div>
+                                <div>周三</div>
+                                <div>周四</div>
+                                <div>周五</div>
+                                <div>周六</div>
+                            </div>
+                            <div id="calendarDays" class="calendar-days"></div>
+                        </div>
+                    </div>
+                    <div class="day-schedule hidden" id="daySchedule">
+                        <div class="day-schedule-header">
+                            <button id="backToCalendar"><i class="fas fa-arrow-left"></i></button>
+                            <h3 id="selectedDate"></h3>
+                        </div>
+                        <div id="dayScheduleContent" class="day-schedule-content"></div>
+                    </div>
+                </div>
+                <div class="btn-group final-btns">
+                    <button class="back-btn" id="step4BackBtn"><i class="fas fa-arrow-left"></i> 返回修改</button>
+                    <button class="save-btn" id="saveScheduleBtn"><i class="fas fa-save"></i> 保存日程</button>
+                    <button class="restart-btn" id="restartBtn"><i class="fas fa-redo"></i> 重新开始</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 智能日程规划助手 | 让你的每一天都高效且有意义</p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/zh.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>秘密传输 - 文字加密解密工具</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #f1f1f1;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        h1 {
+            text-align: center;
+            color: #00b4d8;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(0, 180, 216, 0.5);
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #00b4d8;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            color: #f1f1f1;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .tab.active {
+            color: #00b4d8;
+            font-weight: bold;
+        }
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #00b4d8;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid #00b4d8;
+            border-radius: 5px;
+            color: #f1f1f1;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+        textarea:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 180, 216, 0.7);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        .btn {
+            background-color: #00b4d8;
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background-color: #0096c7;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 180, 216, 0.4);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .result-container {
+            margin-top: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 15px;
+            position: relative;
+        }
+        .result {
+            word-break: break-all;
+            margin-bottom: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 180, 216, 0.3);
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        .copy-btn:hover {
+            background-color: rgba(0, 180, 216, 0.6);
+        }
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #00b4d8;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        .copy-notification.show {
+            opacity: 1;
+        }
+        .info-box {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: rgba(0, 180, 216, 0.1);
+            border-left: 4px solid #00b4d8;
+            border-radius: 3px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #00b4d8;
+        }
+        .strength-meter {
+            height: 5px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin-top: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .strength-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00);
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>秘密传输</h1>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('encrypt')">加密</button>
+            <button class="tab" onclick="switchTab('decrypt')">解密</button>
+        </div>
+        
+        <div id="encrypt" class="tab-content active">
+            <textarea id="encrypt-input" placeholder="请输入需要加密的文字..."></textarea>
+            <div>
+                <label for="encryption-level">加密强度:</label>
+                <input type="range" id="encryption-level" min="1" max="5" value="3" oninput="updateStrengthMeter()">
+                <div class="strength-meter">
+                    <div id="strength-bar" class="strength-bar"></div>
+                </div>
+            </div>
+            <button class="btn" onclick="encrypt()">加密</button>
+            <button class="btn" onclick="clearText('encrypt-input')">清空</button>
+            
+            <div id="encrypt-result-container" class="result-container" style="display: none;">
+                <div id="encrypt-result" class="result"></div>
+                <button class="copy-btn" onclick="copyToClipboard('encrypt-result')">复制</button>
+            </div>
+        </div>
+        
+        <div id="decrypt" class="tab-content">
+            <textarea id="decrypt-input" placeholder="请输入需要解密的密文..."></textarea>
+            <button class="btn" onclick="decrypt()">解密</button>
+            <button class="btn" onclick="clearText('decrypt-input')">清空</button>
+            
+            <div id="decrypt-result-container" class="result-container" style="display: none;">
+                <div id="decrypt-result" class="result"></div>
+                <button class="copy-btn" onclick="copyToClipboard('decrypt-result')">复制</button>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h3>关于此加密工具</h3>
+            <p>本工具使用独特的多层次加密算法，结合了Unicode变换、位运算和自定义密钥生成。加密后的内容只能在此网页中解密，确保您的信息安全传输。</p>
+            <p>加密强度可调节，强度越高，加密后的文本越复杂，但也更安全。</p>
+        </div>
+    </div>
+    
+    <div id="copy-notification" class="copy-notification">已复制到剪贴板</div>
+    
+    <script>
+        // 自定义加密密钥 - 使用一个独特的字符串作为基础
+        const BASE_KEY = "ZXC7*&^%$#@!~vbnm<>?:{PLOKIJUHYGTFRDESWA}";
+        
+        // 切换标签页
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        }
+        
+        // 更新加密强度指示器
+        function updateStrengthMeter() {
+            const level = document.getElementById('encryption-level').value;
+            const percentage = (level / 5) * 100;
+            document.getElementById('strength-bar').style.width = `${percentage}%`;
+        }
+        
+        // 初始化强度指示器
+        updateStrengthMeter();
+        
+        // 生成基于输入和强度的动态密钥
+        function generateDynamicKey(input, level) {
+            let seed = 0;
+            for (let i = 0; i < input.length; i++) {
+                seed += input.charCodeAt(i) * (i + 1);
+            }
+            
+            // 混合基础密钥和种子
+            let dynamicKey = "";
+            for (let i = 0; i < BASE_KEY.length; i++) {
+                const charCode = BASE_KEY.charCodeAt(i) ^ (seed % 256);
+                dynamicKey += String.fromCharCode((charCode % 94) + 33); // 可打印ASCII字符
+            }
+            
+            // 根据强度增加密钥复杂度
+            for (let i = 0; i < level; i++) {
+                dynamicKey = btoa(dynamicKey).replace(/=/g, '');
+            }
+            
+            return dynamicKey.substring(0, 32 + level * 8); // 返回一个足够长的密钥
+        }
+        
+        // 加密函数
+        function encrypt() {
+            const input = document.getElementById('encrypt-input').value;
+            if (!input.trim()) {
+                alert('请输入需要加密的文字');
+                return;
+            }
+            
+            const level = parseInt(document.getElementById('encryption-level').value);
+            const dynamicKey = generateDynamicKey(input, level);
+            
+            // 第一层：Unicode变换
+            let encrypted = "";
+            for (let i = 0; i < input.length; i++) {
+                const charCode = input.charCodeAt(i);
+                const keyChar = dynamicKey.charCodeAt(i % dynamicKey.length);
+                const transformedCode = (charCode + keyChar * level) % 65536; // Unicode范围
+                encrypted += String.fromCharCode(transformedCode);
+            }
+            
+            // 第二层：添加混淆字符
+            let result = "";
+            for (let i = 0; i < encrypted.length; i++) {
+                result += encrypted.charAt(i);
+                // 根据强度添加混淆字符
+                if (i < encrypted.length - 1 && level > 1) {
+                    const confusionChar = String.fromCharCode(
+                        (dynamicKey.charCodeAt((i * 3) % dynamicKey.length) % 64) + 128
+                    );
+                    result += confusionChar.repeat(level - 1);
+                }
+            }
+            
+            // 第三层：Base64编码并添加验证标记
+            const finalResult = utf8ToBase64(result) + "." + btoa(level.toString()) + "." + 
+                               btoa(dynamicKey.substring(0, 8)).replace(/=/g, '');
+            
+            document.getElementById('encrypt-result').textContent = finalResult;
+            document.getElementById('encrypt-result-container').style.display = 'block';
+        }
+        
+        // 支持Unicode的Base64编码函数
+        function utf8ToBase64(str) {
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+                return String.fromCharCode('0x' + p1);
+            }));
+        }
+        
+        // 支持Unicode的Base64解码函数
+        function base64ToUtf8(str) {
+            return decodeURIComponent(atob(str).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+        }
+
+        // 解密函数
+        function decrypt() {
+            const input = document.getElementById('decrypt-input').value.trim();
+            if (!input) {
+                alert('请输入需要解密的密文');
+                return;
+            }
+            
+            try {
+                // 解析加密数据
+                const parts = input.split('.');
+                if (parts.length !== 3) {
+                    throw new Error('无效的加密格式');
+                }
+                
+                const encryptedData = base64ToUtf8(parts[0]);
+                const level = parseInt(atob(parts[1]));
+                const keyFragment = atob(parts[2]);
+                
+                // 尝试提取原始文本以重建密钥
+                let originalText = "";
+                let i = 0;
+                
+                // 移除混淆字符
+                while (i < encryptedData.length) {
+                    originalText += encryptedData.charAt(i);
+                    i += level; // 跳过混淆字符
+                }
+                
+                // 尝试不同的种子值来重建可能的密钥
+                let decrypted = "";
+                let success = false;
+                
+                // 使用暴力方法尝试可能的种子值
+                for (let seed = 0; seed < 1000 && !success; seed++) {
+                    try {
+                        let testKey = "";
+                        for (let j = 0; j < BASE_KEY.length; j++) {
+                            const charCode = BASE_KEY.charCodeAt(j) ^ (seed % 256);
+                            testKey += String.fromCharCode((charCode % 94) + 33);
+                        }
+                        
+                        // 根据强度增加密钥复杂度
+                        for (let j = 0; j < level; j++) {
+                            testKey = btoa(testKey).replace(/=/g, '');
+                        }
+                        
+                        testKey = testKey.substring(0, 32 + level * 8);
+                        
+                        // 如果密钥片段匹配，尝试解密
+                        if (testKey.startsWith(keyFragment)) {
+                            // 解密尝试
+                            let tempDecrypted = "";
+                            for (let j = 0; j < originalText.length; j++) {
+                                const charCode = originalText.charCodeAt(j);
+                                const keyChar = testKey.charCodeAt(j % testKey.length);
+                                // 反向Unicode变换
+                                let originalCode = (charCode - keyChar * level) % 65536;
+                                if (originalCode < 0) originalCode += 65536;
+                                tempDecrypted += String.fromCharCode(originalCode);
+                            }
+                            
+                            // 检查解密结果是否有效
+                            if (/^[\u0020-\u9FFF]+$/.test(tempDecrypted)) {
+                                decrypted = tempDecrypted;
+                                success = true;
+                                break;
+                            }
+                        }
+                    } catch (e) {
+                        continue;
+                    }
+                }
+                
+                if (!success) {
+                    // 如果暴力方法失败，尝试直接解密
+                    let cleanedData = "";
+                    for (let i = 0; i < encryptedData.length; i += level) {
+                        cleanedData += encryptedData.charAt(i);
+                    }
+                    
+                    // 重建可能的密钥
+                    const possibleKey = generateDynamicKey(cleanedData, level);
+                    
+                    // 尝试解密
+                    let tempDecrypted = "";
+                    for (let i = 0; i < cleanedData.length; i++) {
+                        const charCode = cleanedData.charCodeAt(i);
+                        const keyChar = possibleKey.charCodeAt(i % possibleKey.length);
+                        let originalCode = (charCode - keyChar * level) % 65536;
+                        if (originalCode < 0) originalCode += 65536;
+                        tempDecrypted += String.fromCharCode(originalCode);
+                    }
+                    
+                    decrypted = tempDecrypted;
+                }
+                
+                document.getElementById('decrypt-result').textContent = decrypted;
+                document.getElementById('decrypt-result-container').style.display = 'block';
+            } catch (error) {
+                alert('解密失败：' + error.message + '。请确认输入的是有效的密文，且是在本网页中加密的。');
+            }
+        }
+        
+        // 复制到剪贴板
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const notification = document.getElementById('copy-notification');
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动复制');
+            });
+        }
+        
+        // 清空文本
+        function clearText(elementId) {
+            document.getElementById(elementId).value = '';
+            if (elementId === 'encrypt-input') {
+                document.getElementById('encrypt-result-container').style.display = 'none';
+            } else {
+                document.getElementById('decrypt-result-container').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频解析工具</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 30px;
+            display: none;
+        }
+        .result-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .video-container {
+            margin-bottom: 20px;
+        }
+        .video-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .video-url {
+            word-break: break-all;
+            font-family: monospace;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .download-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        .download-btn:hover {
+            background-color: #219653;
+        }
+        .error {
+            color: #e74c3c;
+            background-color: #fadbd8;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .preview {
+            margin-top: 15px;
+            max-width: 100%;
+        }
+        .preview video {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+        .no-videos {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .history {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .history-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .history-item {
+            padding: 10px;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .history-item:hover {
+            background-color: #f0f0f0;
+        }
+        .clear-history {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .clear-history:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>视频解析工具</h1>
+        
+        <div class="input-group">
+            <label for="video-url">输入视频链接：</label>
+            <input type="url" id="video-url" placeholder="https://example.com/video-page" required>
+        </div>
+        
+        <button id="parse-btn">解析视频</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在解析中，请稍候...</p>
+        </div>
+        
+        <div class="error" id="error-message"></div>
+        
+        <div class="result" id="result">
+            <div class="result-header">解析结果：</div>
+            <div id="videos-container"></div>
+        </div>
+        
+        <div class="history" id="history-section">
+            <div class="history-header">历史记录：</div>
+            <div id="history-list"></div>
+            <button class="clear-history" id="clear-history">清空历史记录</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const videoUrlInput = document.getElementById('video-url');
+            const parseBtn = document.getElementById('parse-btn');
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('error-message');
+            const result = document.getElementById('result');
+            const videosContainer = document.getElementById('videos-container');
+            const historyList = document.getElementById('history-list');
+            const clearHistoryBtn = document.getElementById('clear-history');
+            
+            // 加载历史记录
+            loadHistory();
+            
+            // 解析按钮点击事件
+            parseBtn.addEventListener('click', function() {
+                const url = videoUrlInput.value.trim();
+                
+                if (!url) {
+                    showError('请输入有效的视频链接');
+                    return;
+                }
+                
+                if (!isValidUrl(url)) {
+                    showError('请输入有效的URL格式');
+                    return;
+                }
+                
+                // 清除之前的结果和错误
+                clearResults();
+                
+                // 显示加载中
+                loading.style.display = 'block';
+                
+                // 解析视频
+                parseVideo(url);
+            });
+            
+            // 清空历史记录按钮点击事件
+            clearHistoryBtn.addEventListener('click', function() {
+                if (confirm('确定要清空所有历史记录吗？')) {
+                    localStorage.removeItem('videoParserHistory');
+                    historyList.innerHTML = '';
+                }
+            });
+            
+                        // 解析视频函数
+                        function parseVideo(url) {
+                // 使用本地Flask代理服务器
+                const apiUrl = 'http://localhost:5000/extract?url=' + encodeURIComponent(url);
+                
+                // 发送请求到Flask代理服务器
+                fetch(apiUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('无法访问该网页，请检查链接是否正确');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 隐藏加载中
+                        loading.style.display = 'none';
+                        
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        
+                        const videoUrls = data.urls || [];
+                        
+                        if (videoUrls.length > 0) {
+                            // 显示结果
+                            displayResults(videoUrls, url);
+                            // 保存到历史记录 - 修改这里，使用original_url
+                            if (videoUrls[0] && videoUrls[0].original_url) {
+                                saveToHistory(url, videoUrls[0].original_url);
+                            } else {
+                                saveToHistory(url, "未知视频地址");
+                            }
+                            // 重新加载历史记录
+                            loadHistory();
+                        } else {
+                            showError('未找到视频资源，请尝试其他链接');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('解析错误:', error);
+                        loading.style.display = 'none';
+                        showError('解析失败: ' + error.message);
+                        
+                        // 不再使用模拟结果，因为可能会导致混淆
+                        // simulateResults(url);
+                    });
+            }
+            
+            // 模拟解析结果（仅用于演示）
+            function simulateResults(url) {
+                const videoUrl = generateVideoUrl(url);
+                const videoUrls = [videoUrl];
+                
+                displayResults(videoUrls, url);
+                saveToHistory(url, videoUrl);
+                loadHistory();
+            }
+            
+            // 从HTML中提取视频URL
+            function extractVideoUrls(doc, baseUrl) {
+                const urls = [];
+                
+                // 查找video标签
+                const videoElements = doc.querySelectorAll('video');
+                videoElements.forEach(video => {
+                    const src = video.src || video.getAttribute('src');
+                    if (src) {
+                        urls.push(resolveUrl(src, baseUrl));
+                    }
+                    
+                    // 查找source标签
+                    const sources = video.querySelectorAll('source');
+                    sources.forEach(source => {
+                        const sourceSrc = source.src || source.getAttribute('src');
+                        if (sourceSrc) {
+                            urls.push(resolveUrl(sourceSrc, baseUrl));
+                        }
+                    });
+                });
+                
+                // 查找iframe标签（嵌入视频）
+                const iframes = doc.querySelectorAll('iframe');
+                iframes.forEach(iframe => {
+                    const src = iframe.src || iframe.getAttribute('src');
+                    if (src && (src.includes('youtube') || src.includes('vimeo') || src.includes('bilibili'))) {
+                        urls.push(src);
+                    }
+                });
+                
+                // 查找a标签中的视频链接
+                const links = doc.querySelectorAll('a');
+                links.forEach(link => {
+                    const href = link.href || link.getAttribute('href');
+                    if (href && isVideoFile(href)) {
+                        urls.push(resolveUrl(href, baseUrl));
+                    }
+                });
+                
+                // 查找页面中的JSON数据（可能包含视频信息）
+                const scripts = doc.querySelectorAll('script');
+                scripts.forEach(script => {
+                    const content = script.textContent;
+                    if (content) {
+                        // 查找可能的视频URL模式
+                        const urlMatches = content.match(/"(https?:\/\/[^"]*\.(?:mp4|webm|ogg|m3u8)[^"]*)"/g);
+                        if (urlMatches) {
+                            urlMatches.forEach(match => {
+                                const cleanUrl = match.replace(/"/g, '');
+                                urls.push(cleanUrl);
+                            });
+                        }
+                    }
+                });
+                
+                // 去重
+                return [...new Set(urls)];
+            }
+            
+            // 解析相对URL
+            function resolveUrl(url, base) {
+                try {
+                    return new URL(url, base).href;
+                } catch (e) {
+                    return url;
+                }
+            }
+            
+            // 判断是否为视频文件
+            function isVideoFile(url) {
+                const videoExtensions = ['.mp4', '.webm', '.ogg', '.m3u8', '.mov', '.avi', '.wmv', '.flv'];
+                return videoExtensions.some(ext => url.toLowerCase().endsWith(ext));
+            }
+            
+                        // 显示解析结果
+                        function displayResults(videoUrls, sourceUrl) {
+                result.style.display = 'block';
+                videosContainer.innerHTML = '';
+                
+                if (videoUrls.length === 0) {
+                    videosContainer.innerHTML = '<div class="no-videos">未找到视频资源</div>';
+                    return;
+                }
+                
+                videoUrls.forEach((urlObj, index) => {
+                    const videoInfo = document.createElement('div');
+                    videoInfo.className = 'video-info';
+                    
+                    const title = document.createElement('div');
+                    title.textContent = `视频 ${index + 1}`;
+                    title.style.fontWeight = 'bold';
+                    
+                    const urlDisplay = document.createElement('div');
+                    urlDisplay.className = 'video-url';
+                    urlDisplay.textContent = urlObj.original_url;
+                    
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.className = 'download-btn';
+                    downloadBtn.textContent = '下载视频';
+                    downloadBtn.addEventListener('click', function() {
+                        // 使用代理URL下载
+                        const fullProxyUrl = 'http://localhost:5000' + urlObj.proxied_url;
+                        downloadVideo(fullProxyUrl, `video_${index + 1}`);
+                    });
+                    
+                    videoInfo.appendChild(title);
+                    videoInfo.appendChild(urlDisplay);
+                    
+                    // 添加预览（如果是直接的视频文件）
+                    if (isVideoFile(urlObj.original_url)) {
+                        const preview = document.createElement('div');
+                        preview.className = 'preview';
+                        
+                        const video = document.createElement('video');
+                        video.controls = true;
+                        video.width = 320;
+                        
+                        const source = document.createElement('source');
+                        // 使用代理URL预览
+                        source.src = 'http://localhost:5000' + urlObj.proxied_url;
+                        source.type = getVideoMimeType(urlObj.original_url);
+                        
+                        video.appendChild(source);
+                        preview.appendChild(video);
+                        videoInfo.appendChild(preview);
+                    }
+                    
+                    videoInfo.appendChild(downloadBtn);
+                    videosContainer.appendChild(videoInfo);
+                });
+            }
+            
+            // 获取视频MIME类型
+            function getVideoMimeType(url) {
+                if (url.endsWith('.mp4')) return 'video/mp4';
+                if (url.endsWith('.webm')) return 'video/webm';
+                if (url.endsWith('.ogg')) return 'video/ogg';
+                if (url.endsWith('.m3u8')) return 'application/x-mpegURL';
+                return 'video/mp4'; // 默认
+            }
+            
+            // 下载视频
+            function downloadVideo(url, filename) {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            
+            // 保存到历史记录
+            function saveToHistory(sourceUrl, videoUrl) {
+                const history = JSON.parse(localStorage.getItem('videoParserHistory') || '[]');
+                
+                // 检查是否已存在相同的URL
+                const exists = history.some(item => item.sourceUrl === sourceUrl);
+                
+                if (!exists) {
+                    history.unshift({
+                        sourceUrl: sourceUrl,
+                        videoUrl: videoUrl,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    // 限制历史记录数量
+                    if (history.length > 10) {
+                        history.pop();
+                    }
+                    
+                    localStorage.setItem('videoParserHistory', JSON.stringify(history));
+                }
+            }
+            
+            // 加载历史记录
+            function loadHistory() {
+                const history = JSON.parse(localStorage.getItem('videoParserHistory') || '[]');
+                historyList.innerHTML = '';
+                
+                if (history.length === 0) {
+                    historyList.innerHTML = '<div style="color: #7f8c8d; text-align: center;">暂无历史记录</div>';
+                    return;
+                }
+                
+                history.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    
+                    const date = new Date(item.timestamp);
+                    const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                    
+                    historyItem.innerHTML = `
+                        <div><strong>源地址:</strong> ${item.sourceUrl}</div>
+                        <div><strong>时间:</strong> ${formattedDate}</div>
+                    `;
+                    
+                    historyItem.addEventListener('click', function() {
+                        videoUrlInput.value = item.sourceUrl;
+                        parseBtn.click();
+                    });
+                    
+                    historyList.appendChild(historyItem);
+                });
+            }
+            
+            // 显示错误信息
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                result.style.display = 'none';
+            }
+            
+            // 清除结果和错误信息
+            function clearResults() {
+                errorMessage.style.display = 'none';
+                result.style.display = 'none';
+                videosContainer.innerHTML = '';
+            }
+            
+            // 验证URL格式
+            function isValidUrl(url) {
+                try {
+                    new URL(url);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+            
+            // 生成模拟视频URL（仅用于演示）
+            function generateVideoUrl(url) {
+                // 从URL中提取域名
+                let domain = '';
+                try {
+                    domain = new URL(url).hostname;
+                } catch (e) {
+                    domain = 'example.com';
+                }
+                
+                // 生成一个假的视频URL
+                return `https://${domain}/videos/sample_${Math.floor(Math.random() * 1000)}.mp4`;
+            }
+        });
+    </script>
+</body>
+</html>

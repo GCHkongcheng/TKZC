@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界时钟 - 时间工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: #4a90e2;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+            max-width: 500px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .search-input:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        
+        .add-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .add-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .view-toggle {
+            display: flex;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .view-toggle button {
+            background: none;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .view-toggle button.active {
+            background-color: #4a90e2;
+            color: white;
+        }
+        
+        .clocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .clock-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .clock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .clock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .clock-location {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .clock-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .clock-action-btn {
+            background: none;
+            border: none;
+            color: #777;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+        
+        .clock-action-btn:hover {
+            color: #333;
+        }
+        
+        .clock-time {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            color: #333;
+            font-family: monospace;
+        }
+        
+        .clock-date {
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        
+        .clock-info {
+            display: flex;
+            justify-content: space-between;
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        
+        .analog-clock {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #f8f8f8;
+            border: 5px solid #4a90e2;
+            margin: 1rem auto;
+            position: relative;
+        }
+        
+        .clock-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #333;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        
+        .clock-hand {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: left center;
+            z-index: 5;
+        }
+        
+        .hour-hand {
+            width: 40px;
+            height: 6px;
+            background-color: #333;
+            transform: translate(0, -50%) rotate(0deg);
+        }
+        
+        .minute-hand {
+            width: 60px;
+            height: 4px;
+            background-color: #555;
+            transform: translate(0, -50%) rotate(0deg);
+        }
+        
+        .second-hand {
+            width: 70px;
+            height: 2px;
+            background-color: #f44336;
+            transform: translate(0, -50%) rotate(0deg);
+        }
+        
+        .clock-marking {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        
+        .clock-marking span {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background-color: #333;
+            transform-origin: center 75px;
+        }
+        
+        .clock-marking span:nth-child(3n+1) {
+            height: 15px;
+            width: 3px;
+        }
+        
+        .map-view {
+            display: none;
+            height: 600px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .timezone-list {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+        
+        .timezone-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .timezone-table th, .timezone-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .timezone-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .timezone-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .add-timezone-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            animation: modalFadeIn 0.3s;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        .timezone-search {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .timezone-results {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+        }
+        
+        .timezone-item {
+            padding: 0.8rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .timezone-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .timezone-item:last-child {
+            border-bottom: none;
+        }
+        
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="back-btn">← 返回</a>
+        <h1>世界时钟</h1>
+    </header>
+    
+    <div class="container">
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="搜索城市或时区..." id="searchInput">
+                <button class="add-btn" id="addTimezoneBtn">添加时区</button>
+            </div>
+            
+            <div class="view-toggle">
+                <button class="active" id="gridViewBtn">网格视图</button>
+                <button id="mapViewBtn">地图视图</button>
+                <button id="listViewBtn">列表视图</button>
+            </div>
+        </div>
+        
+        <div class="clocks-grid" id="clocksGrid">
+            <!-- 默认时钟 -->
+            <div class="clock-card" data-timezone="Asia/Shanghai">
+                <div class="clock-header">
+                    <div class="clock-location">北京</div>
+                    <div class="clock-actions">
+                        <button class="clock-action-btn" title="设为主时区">📌</button>
+                        <button class="clock-action-btn" title="删除">🗑️</button>
+                    </div>
+                </div>
+                
+                <div class="analog-clock">
+                    <div class="clock-center"></div>
+                    <div class="clock-hand hour-hand"></div>
+                    <div class="clock-hand minute-hand"></div>
+                    <div class="clock-hand second-hand"></div>
+                    <div class="clock-marking">
+                        <!-- 时钟刻度将通过JS生成 -->
+                    </div>
+                </div>
+                
+                <div class="clock-time">15:30:45</div>
+                <div class="clock-date">2023年10月15日 星期日</div>
+                
+                <div class="clock-info">
+                    <span>GMT+8</span>
+                    <span>CST</span>
+                </div>
+            </div>
+            
+            <div class="clock-card" data-timezone="America/New_York">
+                <div class="clock-header">
+                    <div class="clock-location">纽约</div>
+                    <div class="clock-actions">
+                        <button class="clock-action-btn" title="设为主时区">📌</button>
+                        <button class="clock-action-btn" title="删除">🗑️</button>
+                    </div>
+                </div>
+                
+                <div class="analog-clock">
+                    <div class="clock-center"></div>
+                    <div class="clock-hand hour-hand"></div>
+                    <div class="clock-hand minute-hand"></div>
+                    <div class="clock-hand second-hand"></div>
+                    <div class="clock-marking">
+                        <!-- 时钟刻度将通过JS生成 -->
+                    </div>
+                </div>
+                
+                <div class="clock-time">03:30:45</div>
+                <div class="clock-date">2023年10月15日 星期日</div>
+                
+                <div class="clock-info">
+                    <span>GMT-4</span>
+                    <span>EDT</span>
+                </div>
+            </div>
+            
+            <div class="clock-card" data-timezone="Europe/London">
+                <div class="clock-header">
+                    <div class="clock-location">伦敦</div>
+                    <div class="clock-actions">
+                        <button class="clock-action-btn" title="设为主时区">📌</button>
+                        <button class="clock-action-btn" title="删除">🗑️</button>
+                    </div>
+                </div>
+                
+                <div class="analog-clock">
+                    <div class="clock-center"></div>
+                    <div class="clock-hand hour-hand"></div>
+                    <div class="clock-hand minute-hand"></div>
+                    <div class="clock-hand second-hand"></div>
+                    <div class="clock-marking">
+                        <!-- 时钟刻度将通过JS生成 -->
+                    </div>
+                </div>
+                
+                <div class="clock-time">08:30:45</div>
+                <div class="clock-date">2023年10月15日 星期日</div>
+                
+                <div class="clock-info">
+                    <span>GMT+1</span>
+                    <span>BST</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="map-view" id="mapView">
+            <!-- 地图将通过JS加载 -->
+        </div>
+        
+        <div class="timezone-list" id="timezoneList">
+            <table class="timezone-table">
+                <thead>
+                    <tr>
+                        <th>城市</th>
+                        <th>时区</th>
+                        <th>当前时间</th>
+                        <th>与本地时差</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="timezoneTableBody">
+                    <!-- 时区列表将通过JS生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="add-timezone-modal" id="addTimezoneModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">添加时区</h2>
+                <button class="close-modal" id="closeModalBtn">×</button>
+            </div>
+            
+            <input type="text" class="timezone-search" id="timezoneSearch" placeholder="搜索城市、国家或时区...">
+            
+            <div class="timezone-results" id="timezoneResults">
+                <!-- 搜索结果将通过JS生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2023 时间工具 | 让时间管理更简单</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const clocksGrid = document.getElementById('clocksGrid');
+            const mapView = document.getElementById('mapView');
+            const timezoneList = document.getElementById('timezoneList');
+            const gridViewBtn = document.getElementById('gridViewBtn');
+            const mapViewBtn = document.getElementById('mapViewBtn');
+            const listViewBtn = document.getElementById('listViewBtn');
+            const addTimezoneBtn = document.getElementById('addTimezoneBtn');
+            const addTimezoneModal = document.getElementById('addTimezoneModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const timezoneSearch = document.getElementById('timezoneSearch');
+            const timezoneResults = document.getElementById('timezoneResults');
+            const searchInput = document.getElementById('searchInput');
+            const timezoneTableBody = document.getElementById('timezoneTableBody');
+            
+            // 时区数据
+            const timezones = [
+                { city: '北京', timezone: 'Asia/Shanghai', offset: '+08:00', code: 'CST' },
+                { city: '纽约', timezone: 'America/New_York', offset: '-04:00', code: 'EDT' },
+                { city: '伦敦', timezone: 'Europe/London', offset: '+01:00', code: 'BST' },
+                { city: '东京', timezone: 'Asia/Tokyo', offset: '+09:00', code: 'JST' },
+                { city: '悉尼', timezone: 'Australia/Sydney', offset: '+11:00', code: 'AEDT' },
+                { city: '洛杉矶', timezone: 'America/Los_Angeles', offset: '-07:00', code: 'PDT' },
+                { city: '巴黎', timezone: 'Europe/Paris', offset: '+02:00', code: 'CEST' },
+                { city: '莫斯科', timezone: 'Europe/Moscow', offset: '+03:00', code: 'MSK' },
+                { city: '迪拜', timezone: 'Asia/Dubai', offset: '+04:00', code: 'GST' },
+                { city: '新德里', timezone: 'Asia/Kolkata', offset: '+05:30', code: 'IST' }
+            ];
+            
+            // 初始化时钟刻度
+            function initClockMarkings() {
+                const clockMarkings = document.querySelectorAll('.clock-marking');
+                
+                clockMarkings.forEach(marking => {
+                    marking.innerHTML = '';
+                    
+                    for (let i = 0; i < 12; i++) {
+                        const span = document.createElement('span');
+                        span.style.transform = `rotate(${i * 30}deg) translateX(75px)`;
+                        marking.appendChild(span);
+                    }
+                });
+            }
+            
+            // 更新时钟
+            function updateClocks() {
+                const clockCards = document.querySelectorAll('.clock-card');
+                
+                clockCards.forEach(card => {
+                    const timezone = card.getAttribute('data-timezone');
+                    const timeElement = card.querySelector('.clock-time');
+                    const dateElement = card.querySelector('.clock-date');
+                    const hourHand = card.querySelector('.hour-hand');
+                    const minuteHand = card.querySelector('.minute-hand');
+                    const secondHand = card.querySelector('.second-hand');
+                    
+                    // 获取指定时区的当前时间
+                    const now = new Date();
+                    const options = { timeZone: timezone, hour12: false };
+                    
+                    // 更新数字时钟
+                    const timeString = now.toLocaleTimeString('zh-CN', options);
+                    timeElement.textContent = timeString;
+                    
+                    // 更新日期
+                    const dateOptions = { 
+                        timeZone: timezone,
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long'
+                    };
+                    const dateString = now.toLocaleDateString('zh-CN', dateOptions);
+                    dateElement.textContent = dateString;
+                    
+                    // 更新模拟时钟
+                    const timeParts = timeString.split(':');
+                    const hours = parseInt(timeParts[0]);
+                    const minutes = parseInt(timeParts[1]);
+                    const seconds = parseInt(timeParts[2]);
+                    
+                    const hourDegrees = (hours % 12) * 30 + minutes * 0.5;
+                    const minuteDegrees = minutes * 6;
+                    const secondDegrees = seconds * 6;
+                    
+                    hourHand.style.transform = `translate(0, -50%) rotate(${hourDegrees}deg)`;
+                    minuteHand.style.transform = `translate(0, -50%) rotate(${minuteDegrees}deg)`;
+                    secondHand.style.transform = `translate(0, -50%) rotate(${secondDegrees}deg)`;
+                });
+                
+                // 更新时区列表
+                updateTimezoneList();
+            }
+            
+            // 更新时区列表
+            function updateTimezoneList() {
+                if (timezoneList.style.display === 'block') {
+                    timezoneTableBody.innerHTML = '';
+                    
+                    const localTime = new Date();
+                    const localOffset = localTime.getTimezoneOffset();
+                    
+                    const clockCards = document.querySelectorAll('.clock-card');
+                    clockCards.forEach(card => {
+                        const timezone = card.getAttribute('data-timezone');
+                        const cityName = card.querySelector('.clock-location').textContent;
+                        const timeElement = card.querySelector('.clock-time').textContent;
+                        const offsetInfo = card.querySelector('.clock-info span:first-child').textContent;
+                        
+                        // 计算与本地时间的差异
+                        const now = new Date();
+                        const options = { timeZone: timezone, hour12: false };
+                        const timeString = now.toLocaleTimeString('zh-CN', options);
+                        const timeParts = timeString.split(':');
+                        const hours = parseInt(timeParts[0]);
+                        
+                        const localHours = localTime.getHours();
+                        let diff = hours - localHours;
+                        
+                        // 处理跨日期的情况
+                        if (diff > 12) diff -= 24;
+                        if (diff < -12) diff += 24;
+                        
+                        const diffString = diff > 0 ? `+${diff}小时` : diff < 0 ? `${diff}小时` : '相同';
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${cityName}</td>
+                            <td>${timezone}</td>
+                            <td>${timeElement}</td>
+                            <td>${diffString}</td>
+                            <td>
+                                <button class="clock-action-btn" title="设为主时区">📌</button>
+                                <button class="clock-action-btn" title="删除">🗑️</button>
+                            </td>
+                        `;
+                        
+                        timezoneTableBody.appendChild(row);
+                    });
+                }
+            }
+            
+            // 切换视图
+            function switchView(viewType) {
+                // 重置按钮状态
+                gridViewBtn.classList.remove('active');
+                mapViewBtn.classList.remove('active');
+                listViewBtn.classList.remove('active');
+                
+                // 隐藏所有视图
+                clocksGrid.style.display = 'none';
+                mapView.style.display = 'none';
+                timezoneList.style.display = 'none';
+                
+                // 显示选中的视图
+                if (viewType === 'grid') {
+                    clocksGrid.style.display = 'grid';
+                    gridViewBtn.classList.add('active');
+                } else if (viewType === 'map') {
+                    mapView.style.display = 'block';
+                    mapViewBtn.classList.add('active');
+                    initMap();
+                } else if (viewType === 'list') {
+                    timezoneList.style.display = 'block';
+                    listViewBtn.classList.add('active');
+                    updateTimezoneList();
+                }
+            }
+            
+            // 初始化地图
+            function initMap() {
+                // 这里可以集成第三方地图API，如Google Maps或高德地图
+                mapView.innerHTML = '<div style="padding: 2rem; text-align: center;">地图功能正在开发中...</div>';
+            }
+            
+            // 添加时区
+            function addTimezone(city, timezone, offset, code) {
+                const clockCard = document.createElement('div');
+                clockCard.className = 'clock-card';
+                clockCard.setAttribute('data-timezone', timezone);
+                
+                clockCard.innerHTML = `
+                    <div class="clock-header">
+                        <div class="clock-location">${city}</div>
+                        <div class="clock-actions">
+                            <button class="clock-action-btn" title="设为主时区">📌</button>
+                            <button class="clock-action-btn" title="删除">🗑️</button>
+                        </div>
+                    </div>
+                    
+                    <div class="analog-clock">
+                        <div class="clock-center"></div>
+                        <div class="clock-hand hour-hand"></div>
+                        <div class="clock-hand minute-hand"></div>
+                        <div class="clock-hand second-hand"></div>
+                        <div class="clock-marking"></div>
+                    </div>
+                    
+                    <div class="clock-time">--:--:--</div>
+                    <div class="clock-date">----年--月--日 星期-</div>
+                    
+                    <div class="clock-info">
+                        <span>${offset}</span>
+                        <span>${code}</span>
+                    </div>
+                `;
+                
+                clocksGrid.appendChild(clockCard);
+                initClockMarkings();
+                updateClocks();
+            }
+            
+            // 搜索时区
+            function searchTimezones(query) {
+                query = query.toLowerCase();
+                
+                return timezones.filter(tz => 
+                    tz.city.toLowerCase().includes(query) || 
+                    tz.timezone.toLowerCase().includes(query) ||
+                    tz.code.toLowerCase().includes(query)
+                );
+            }
+            
+            // 显示搜索结果
+            function showSearchResults(results) {
+                timezoneResults.innerHTML = '';
+                
+                if (results.length === 0) {
+                    timezoneResults.innerHTML = '<div style="padding: 1rem; text-align: center; color: #777;">未找到匹配的时区</div>';
+                    return;
+                }
+                
+                results.forEach(result => {
+                    const item = document.createElement('div');
+                    item.className = 'timezone-item';
+                    item.innerHTML = `
+                        <div><strong>${result.city}</strong></div>
+                        <div>${result.timezone} (${result.offset} ${result.code})</div>
+                    `;
+                    
+                    item.addEventListener('click', function() {
+                        addTimezone(result.city, result.timezone, result.offset, result.code);
+                        addTimezoneModal.style.display = 'none';
+                        timezoneSearch.value = '';
+                    });
+                    
+                    timezoneResults.appendChild(item);
+                });
+            }
+            
+            // 事件监听
+            gridViewBtn.addEventListener('click', () => switchView('grid'));
+            mapViewBtn.addEventListener('click', () => switchView('map'));
+            listViewBtn.addEventListener('click', () => switchView('list'));
+            
+            addTimezoneBtn.addEventListener('click', function() {
+                addTimezoneModal.style.display = 'flex';
+                timezoneSearch.focus();
+                showSearchResults(timezones);
+            });
+            
+            closeModalBtn.addEventListener('click', function() {
+                addTimezoneModal.style.display = 'none';
+            });
+            
+            timezoneSearch.addEventListener('input', function() {
+                const query = this.value.trim();
+                const results = query ? searchTimezones(query) : timezones;
+                showSearchResults(results);
+            });
+            
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                
+                document.querySelectorAll('.clock-card').forEach(card => {
+                    const cityName = card.querySelector('.clock-location').textContent.toLowerCase();
+                    const timezone = card.getAttribute('data-timezone').toLowerCase();
+                    
+                    if (cityName.includes(query) || timezone.includes(query)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+            
+            // 点击页面其他区域关闭模态框
+            window.addEventListener('click', function(event) {
+                if (event.target === addTimezoneModal) {
+                    addTimezoneModal.style.display = 'none';
+                }
+            });
+            
+            // 初始化
+            initClockMarkings();
+            updateClocks();
+            setInterval(updateClocks, 1000);
+            switchView('grid');
+            
+                        // 处理删除和设为主时区的操作
+                        document.addEventListener('click', function(event) {
+                if (event.target.classList.contains('clock-action-btn')) {
+                    const button = event.target;
+                    const clockCard = button.closest('.clock-card');
+                    
+                    if (button.title === '删除') {
+                        // 确认是否删除
+                        if (confirm('确定要删除这个时区吗？')) {
+                            clockCard.remove();
+                        }
+                    } else if (button.title === '设为主时区') {
+                        // 移除其他时区的主时区标记
+                        document.querySelectorAll('.clock-card').forEach(card => {
+                            card.classList.remove('main-timezone');
+                            card.style.borderColor = '';
+                        });
+                        
+                        // 设置当前时区为主时区
+                        clockCard.classList.add('main-timezone');
+                        clockCard.style.borderColor = '#f44336';
+                        
+                        // 将当前时区移到第一位
+                        clocksGrid.prepend(clockCard);
+                    }
+                }
+            });
+            
+            // 保存时区到本地存储
+            function saveTimezones() {
+                const clockCards = document.querySelectorAll('.clock-card');
+                const savedTimezones = [];
+                
+                clockCards.forEach(card => {
+                    const city = card.querySelector('.clock-location').textContent;
+                    const timezone = card.getAttribute('data-timezone');
+                    const offset = card.querySelector('.clock-info span:first-child').textContent;
+                    const code = card.querySelector('.clock-info span:last-child').textContent;
+                    const isMain = card.classList.contains('main-timezone');
+                    
+                    savedTimezones.push({
+                        city,
+                        timezone,
+                        offset,
+                        code,
+                        isMain
+                    });
+                });
+                
+                localStorage.setItem('savedTimezones', JSON.stringify(savedTimezones));
+            }
+            
+            // 从本地存储加载时区
+            function loadTimezones() {
+                const savedTimezones = localStorage.getItem('savedTimezones');
+                
+                if (savedTimezones) {
+                    // 清空当前时区
+                    clocksGrid.innerHTML = '';
+                    
+                    // 加载保存的时区
+                    const timezones = JSON.parse(savedTimezones);
+                    
+                    timezones.forEach(tz => {
+                        const clockCard = document.createElement('div');
+                        clockCard.className = 'clock-card';
+                        if (tz.isMain) {
+                            clockCard.classList.add('main-timezone');
+                            clockCard.style.borderColor = '#f44336';
+                        }
+                        clockCard.setAttribute('data-timezone', tz.timezone);
+                        
+                        clockCard.innerHTML = `
+                            <div class="clock-header">
+                                <div class="clock-location">${tz.city}</div>
+                                <div class="clock-actions">
+                                    <button class="clock-action-btn" title="设为主时区">📌</button>
+                                    <button class="clock-action-btn" title="删除">🗑️</button>
+                                </div>
+                            </div>
+                            
+                            <div class="analog-clock">
+                                <div class="clock-center"></div>
+                                <div class="clock-hand hour-hand"></div>
+                                <div class="clock-hand minute-hand"></div>
+                                <div class="clock-hand second-hand"></div>
+                                <div class="clock-marking"></div>
+                            </div>
+                            
+                            <div class="clock-time">--:--:--</div>
+                            <div class="clock-date">----年--月--日 星期-</div>
+                            
+                            <div class="clock-info">
+                                <span>${tz.offset}</span>
+                                <span>${tz.code}</span>
+                            </div>
+                        `;
+                        
+                        clocksGrid.appendChild(clockCard);
+                    });
+                    
+                    initClockMarkings();
+                    updateClocks();
+                }
+            }
+            
+            // 在时区变化时保存
+            const observer = new MutationObserver(function(mutations) {
+                saveTimezones();
+            });
+            
+            observer.observe(clocksGrid, { childList: true, subtree: true });
+            
+            // 加载保存的时区
+            loadTimezones();
+            
+            // 添加键盘快捷键支持
+            document.addEventListener('keydown', function(event) {
+                // Ctrl+F 聚焦搜索框
+                if (event.ctrlKey && event.key === 'f') {
+                    event.preventDefault();
+                    searchInput.focus();
+                }
+                
+                // Esc 关闭模态框
+                if (event.key === 'Escape' && addTimezoneModal.style.display === 'flex') {
+                    addTimezoneModal.style.display = 'none';
+                }
+            });
+            
+            // 添加拖拽排序功能
+            let draggedItem = null;
+            
+            document.addEventListener('dragstart', function(event) {
+                if (event.target.classList.contains('clock-card')) {
+                    draggedItem = event.target;
+                    setTimeout(() => {
+                        event.target.style.opacity = '0.5';
+                    }, 0);
+                }
+            });
+            
+            document.addEventListener('dragend', function(event) {
+                if (event.target.classList.contains('clock-card')) {
+                    event.target.style.opacity = '1';
+                    draggedItem = null;
+                    saveTimezones();
+                }
+            });
+            
+            document.addEventListener('dragover', function(event) {
+                event.preventDefault();
+            });
+            
+            document.addEventListener('dragenter', function(event) {
+                if (event.target.classList.contains('clock-card') && event.target !== draggedItem) {
+                    event.target.style.borderTop = '2px solid #4a90e2';
+                }
+            });
+            
+            document.addEventListener('dragleave', function(event) {
+                if (event.target.classList.contains('clock-card')) {
+                    event.target.style.borderTop = '';
+                }
+            });
+            
+            document.addEventListener('drop', function(event) {
+                event.preventDefault();
+                if (event.target.classList.contains('clock-card') && event.target !== draggedItem) {
+                    event.target.style.borderTop = '';
+                    clocksGrid.insertBefore(draggedItem, event.target);
+                }
+            });
+            
+            // 为时钟卡片添加拖拽属性
+            document.querySelectorAll('.clock-card').forEach(card => {
+                card.setAttribute('draggable', 'true');
+            });
+        });
+    </script>
+</body>
+</html>

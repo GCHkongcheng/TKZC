@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日历查看器 - 时间工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: #4a90e2;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+        
+        .calendar-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .month-year {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .nav-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background-color: #3a80d2;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .weekday-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 0.5rem;
+            color: #555;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .calendar-day {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: relative;
+        }
+        
+        .calendar-day:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .calendar-day.today {
+            background-color: #4a90e2;
+            color: white;
+        }
+        
+        .calendar-day.other-month {
+            color: #ccc;
+        }
+        
+        .calendar-day.weekend {
+            color: #e74c3c;
+        }
+        
+        .calendar-day.weekend.other-month {
+            color: #f5b7b1;
+        }
+        
+        .calendar-day.holiday::after {
+            content: '•';
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #e74c3c;
+            font-size: 1.2rem;
+        }
+        
+        .event-indicator {
+            width: 6px;
+            height: 6px;
+            background-color: #4a90e2;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .holiday-list {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .holiday-list h2 {
+            margin-bottom: 1rem;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        
+        .holiday-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .holiday-date {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .holiday-name {
+            color: #333;
+        }
+        
+        .event-form {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        
+        .event-form h2 {
+            margin-bottom: 1rem;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        
+        .btn-primary {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a80d2;
+        }
+        
+        .event-list {
+            margin-top: 2rem;
+        }
+        
+        .event-list h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .event-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+            margin-bottom: 0.5rem;
+        }
+        
+        .event-title {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .event-date {
+            color: #555;
+        }
+        
+        .event-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-sm {
+            background-color: #ddd;
+            border: none;
+            border-radius: 3px;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-grid {
+                gap: 0.2rem;
+            }
+            
+            .calendar-day {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="back-btn">← 返回</a>
+        <h1>日历查看器</h1>
+    </header>
+    
+    <div class="container">
+        <div class="calendar-card">
+            <div class="calendar-header">
+                <button class="nav-btn" id="prevYear"><<</button>
+                <button class="nav-btn" id="prevMonth"><</button>
+                <div class="month-year" id="monthYear">2023年10月</div>
+                <button class="nav-btn" id="nextMonth">></button>
+                <button class="nav-btn" id="nextYear">>></button>
+                <button class="nav-btn" id="todayBtn">今天</button>
+            </div>
+            
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- 日历内容将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div class="holiday-list">
+            <h2>本月节假日</h2>
+            <div id="holidayList">
+                <!-- 节假日列表将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div class="event-form">
+            <h2>添加事件</h2>
+            <div class="form-group">
+                <label for="eventTitle">事件标题</label>
+                <input type="text" class="form-control" id="eventTitle" placeholder="输入事件标题">
+            </div>
+            
+            <div class="form-group">
+                <label for="eventDate">事件日期</label>
+                <input type="date" class="form-control" id="eventDate">
+            </div>
+            
+            <div class="form-group">
+                <label for="eventDescription">事件描述</label>
+                <textarea class="form-control" id="eventDescription" rows="3" placeholder="输入事件描述"></textarea>
+            </div>
+            
+            <button class="btn-primary" id="addEventBtn">添加事件</button>
+            
+            <div class="event-list">
+                <h3>我的事件</h3>
+                <div id="eventList">
+                    <!-- 事件列表将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="eventModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalDate">2023年10月1日</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 模态框内容将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2023 时间工具 | 让时间管理更简单</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM元素
+            const calendarGrid = document.getElementById('calendarGrid');
+            const monthYearElement = document.getElementById('monthYear');
+            const prevMonthBtn = document.getElementById('prevMonth');
+            const nextMonthBtn = document.getElementById('nextMonth');
+            const prevYearBtn = document.getElementById('prevYear');
+            const nextYearBtn = document.getElementById('nextYear');
+            const todayBtn = document.getElementById('todayBtn');
+            const holidayList = document.getElementById('holidayList');
+            const eventTitleInput = document.getElementById('eventTitle');
+            const eventDateInput = document.getElementById('eventDate');
+            const eventDescriptionInput = document.getElementById('eventDescription');
+            const addEventBtn = document.getElementById('addEventBtn');
+            const eventList = document.getElementById('eventList');
+            const eventModal = document.getElementById('eventModal');
+            const modalDate = document.getElementById('modalDate');
+            const modalBody = document.getElementById('modalBody');
+            const closeModal = document.getElementById('closeModal');
+            
+            // 当前日期
+            let currentDate = new Date();
+            let currentMonth = currentDate.getMonth();
+            let currentYear = currentDate.getFullYear();
+            
+            // 中国法定节假日（简化版）
+            const holidays = {
+                '0-1': '元旦',
+                '0-31': '除夕', // 农历，这里用阳历近似
+                '1-1': '春节', // 农历，这里用阳历近似
+                '1-14': '情人节',
+                '2-8': '妇女节',
+                '2-12': '植树节',
+                '3-1': '愚人节',
+                '3-5': '清明节', // 农历，这里用阳历近似
+                '4-1': '劳动节',
+                '4-4': '青年节',
+                '4-9': '母亲节', // 5月第二个星期日，这里用阳历近似
+                '4-31': '儿童节',
+                '5-1': '建党节',
+                '7-1': '建军节',
+                '8-10': '教师节',
+                '9-1': '国庆节',
+                '11-25': '圣诞节'
+            };
+            
+            // 用户事件
+            let events = JSON.parse(localStorage.getItem('calendarEvents')) || [];
+            
+            // 生成日历
+            function generateCalendar(month, year) {
+                // 清空日历网格
+                calendarGrid.innerHTML = '';
+                
+                // 添加星期头部
+                const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+                weekdays.forEach(day => {
+                    const weekdayHeader = document.createElement('div');
+                    weekdayHeader.className = 'weekday-header';
+                    weekdayHeader.textContent = day;
+                    calendarGrid.appendChild(weekdayHeader);
+                });
+                
+                // 获取当月第一天
+                const firstDay = new Date(year, month, 1);
+                // 获取当月最后一天
+                const lastDay = new Date(year, month + 1, 0);
+                
+                // 获取当月第一天是星期几（0-6）
+                const firstDayIndex = firstDay.getDay();
+                // 获取当月天数
+                const daysInMonth = lastDay.getDate();
+                
+                // 获取上个月最后一天
+                const prevLastDay = new Date(year, month, 0);
+                const prevDaysInMonth = prevLastDay.getDate();
+                
+                // 获取下个月第一天
+                const nextFirstDay = new Date(year, month + 1, 1);
+                
+                // 计算需要显示的上个月的天数
+                const prevDays = firstDayIndex;
+                
+                // 计算日历格子总数（7列 x 6行）
+                const totalCells = 42;
+                
+                // 今天的日期
+                const today = new Date();
+                const todayDate = today.getDate();
+                const todayMonth = today.getMonth();
+                const todayYear = today.getFullYear();
+                
+                // 生成日历单元格
+                for (let i = 0; i < totalCells; i++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'calendar-day';
+                    
+                    // 上个月的日期
+                    if (i < prevDays) {
+                        const prevDate = prevDaysInMonth - prevDays + i + 1;
+                        dayCell.textContent = prevDate;
+                        dayCell.classList.add('other-month');
+                        
+                        // 检查是否是周末
+                        if (i % 7 === 0 || i % 7 === 6) {
+                            dayCell.classList.add('weekend');
+                        }
+                        
+                        // 设置日期属性
+                        const prevMonth = month === 0 ? 11 : month - 1;
+                        const prevYear = month === 0 ? year - 1 : year;
+                        dayCell.dataset.date = `${prevYear}-${prevMonth}-${prevDate}`;
+                    } 
+                    // 当月的日期
+                    else if (i < prevDays + daysInMonth) {
+                        const date = i - prevDays + 1;
+                        dayCell.textContent = date;
+                        
+                        // 检查是否是今天
+                        if (date === todayDate && month === todayMonth && year === todayYear) {
+                            dayCell.classList.add('today');
+                        }
+                        
+                        // 检查是否是周末
+                        if (i % 7 === 0 || i % 7 === 6) {
+                            dayCell.classList.add('weekend');
+                        }
+                        
+                        // 检查是否是节假日
+                        const holidayKey = `${month}-${date}`;
+                        if (holidays[holidayKey]) {
+                            dayCell.classList.add('holiday');
+                            dayCell.title = holidays[holidayKey];
+                        }
+                        
+                        // 检查是否有事件
+                        const eventDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                        const hasEvents = events.some(event => event.date === eventDate);
+                        if (hasEvents) {
+                            const indicator = document.createElement('div');
+                            indicator.className = 'event-indicator';
+                            dayCell.appendChild(indicator);
+                        }
+                        
+                        // 设置日期属性
+                        dayCell.dataset.date = `${year}-${month}-${date}`;
+                    } 
+                    // 下个月的日期
+                    else {
+                        const nextDate = i - prevDays - daysInMonth + 1;
+                        dayCell.textContent = nextDate;
+                        dayCell.classList.add('other-month');
+                        
+                        // 检查是否是周末
+                        if (i % 7 === 0 || i % 7 === 6) {
+                            dayCell.classList.add('weekend');
+                        }
+                        
+                        // 设置日期属性
+                        const nextMonth = month === 11 ? 0 : month + 1;
+                        const nextYear = month === 11 ? year + 1 : year;
+                        dayCell.dataset.date = `${nextYear}-${nextMonth}-${nextDate}`;
+                    }
+                    
+                    // 添加点击事件
+                    dayCell.addEventListener('click', function() {
+                        const [clickYear, clickMonth, clickDate] = this.dataset.date.split('-').map(Number);
+                        showDayEvents(clickYear, clickMonth, clickDate);
+                    });
+                    
+                    calendarGrid.appendChild(dayCell);
+                }
+                
+                // 更新月份和年份显示
+                monthYearElement.textContent = `${year}年${month + 1}月`;
+                
+                // 更新节假日列表
+                updateHolidayList(month, year);
+            }
+            
+            // 更新节假日列表
+            function updateHolidayList(month, year) {
+                holidayList.innerHTML = '';
+                
+                let hasHolidays = false;
+                
+                for (const key in holidays) {
+                    const [holidayMonth, holidayDate] = key.split('-').map(Number);
+                    
+                    if (holidayMonth === month) {
+                        hasHolidays = true;
+                        
+                        const holidayItem = document.createElement('div');
+                        holidayItem.className = 'holiday-item';
+                        
+                        const holidayDateElement = document.createElement('div');
+                        holidayDateElement.className = 'holiday-date';
+                        holidayDateElement.textContent = `${month + 1}月${holidayDate}日`;
+                        
+                        const holidayName = document.createElement('div');
+                        holidayName.className = 'holiday-name';
+                        holidayName.textContent = holidays[key];
+                        
+                        holidayItem.appendChild(holidayDateElement);
+                        holidayItem.appendChild(holidayName);
+                        
+                        holidayList.appendChild(holidayItem);
+                    }
+                }
+                
+                if (!hasHolidays) {
+                    holidayList.innerHTML = '<div class="holiday-item">本月没有法定节假日</div>';
+                }
+            }
+            
+            // 显示某一天的事件
+            function showDayEvents(year, month, date) {
+                // 格式化日期
+                const formattedMonth = month + 1;
+                const formattedDate = `${year}年${formattedMonth}月${date}日`;
+                modalDate.textContent = formattedDate;
+                
+                // 查找当天的事件
+                const eventDate = `${year}-${String(formattedMonth).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                const dayEvents = events.filter(event => event.date === eventDate);
+                
+                // 更新模态框内容
+                if (dayEvents.length > 0) {
+                    let content = '<h3>事件列表</h3>';
+                    dayEvents.forEach((event, index) => {
+                        content += `
+                            <div class="event-item">
+                                <div class="event-title">${event.title}</div>
+                                <div class="event-actions">
+                                    <button class="btn-sm btn-danger" onclick="deleteEvent(${index}, '${eventDate}')">删除</button>
+                                </div>
+                            </div>
+                            <div>${event.description || '无描述'}</div>
+                        `;
+                    });
+                    modalBody.innerHTML = content;
+                } else {
+                    modalBody.innerHTML = '<p>当天没有事件</p>';
+                }
+                
+                // 显示模态框
+                eventModal.style.display = 'flex';
+                
+                // 添加删除事件的全局函数
+                window.deleteEvent = function(index, date) {
+                    const eventIndex = events.findIndex(e => e.date === date && e.index === index);
+                    if (eventIndex !== -1) {
+                        events.splice(eventIndex, 1);
+                        localStorage.setItem('calendarEvents', JSON.stringify(events));
+                        showDayEvents(year, month, date);
+                        renderEvents();
+                        generateCalendar(currentMonth, currentYear);
+                    }
+                };
+            }
+            
+            // 添加事件
+            function addEvent() {
+                const title = eventTitleInput.value.trim();
+                const date = eventDateInput.value;
+                const description = eventDescriptionInput.value.trim();
+                
+                if (!title || !date) {
+                    alert('请输入事件标题和日期');
+                    return;
+                }
+                
+                const newEvent = {
+                    title,
+                    date,
+                    description,
+                    index: events.length
+                };
+                
+                events.push(newEvent);
+                localStorage.setItem('calendarEvents', JSON.stringify(events));
+                
+                // 清空表单
+                eventTitleInput.value = '';
+                eventDateInput.value = '';
+                eventDescriptionInput.value = '';
+                
+                // 重新渲染事件列表
+                renderEvents();
+                
+                // 重新生成日历以显示事件指示器
+                generateCalendar(currentMonth, currentYear);
+            }
+            
+            // 渲染事件列表
+            function renderEvents() {
+                eventList.innerHTML = '';
+                
+                if (events.length === 0) {
+                    eventList.innerHTML = '<p>暂无事件</p>';
+                    return;
+                }
+                
+                // 按日期排序
+                events.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                events.forEach((event, index) => {
+                    const eventItem = document.createElement('div');
+                    eventItem.className = 'event-item';
+                    
+                    const eventInfo = document.createElement('div');
+                    eventInfo.innerHTML = `
+                        <div class="event-title">${event.title}</div>
+                        <div class="event-date">${formatDate(event.date)}</div>
+                    `;
+                    
+                    const eventActions = document.createElement('div');
+                    eventActions.className = 'event-actions';
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn-sm btn-danger';
+                    deleteBtn.textContent = '删除';
+                    deleteBtn.addEventListener('click', function() {
+                        events.splice(index, 1);
+                        localStorage.setItem('calendarEvents', JSON.stringify(events));
+                        renderEvents();
+                        generateCalendar(currentMonth, currentYear);
+                    });
+                    
+                    eventActions.appendChild(deleteBtn);
+                    eventItem.appendChild(eventInfo);
+                    eventItem.appendChild(eventActions);
+                    eventList.appendChild(eventItem);
+                });
+            }
+            
+            // 格式化日期
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+            }
+            
+            // 初始化
+            generateCalendar(currentMonth, currentYear);
+            renderEvents();
+            
+            // 设置今天的日期为默认事件日期
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            eventDateInput.value = `${year}-${month}-${day}`;
+            
+            // 事件监听
+            prevMonthBtn.addEventListener('click', function() {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                generateCalendar(currentMonth, currentYear);
+            });
+            
+            nextMonthBtn.addEventListener('click', function() {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                generateCalendar(currentMonth, currentYear);
+            });
+            
+            prevYearBtn.addEventListener('click', function() {
+                currentYear--;
+                generateCalendar(currentMonth, currentYear);
+            });
+            
+            nextYearBtn.addEventListener('click', function() {
+                currentYear++;
+                generateCalendar(currentMonth, currentYear);
+            });
+            
+            todayBtn.addEventListener('click', function() {
+                const today = new Date();
+                currentMonth = today.getMonth();
+                currentYear = today.getFullYear();
+                generateCalendar(currentMonth, currentYear);
+            });
+            
+            addEventBtn.addEventListener('click', addEvent);
+            
+            closeModal.addEventListener('click', function() {
+                eventModal.style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === eventModal) {
+                    eventModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

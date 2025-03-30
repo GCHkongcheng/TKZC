@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄工作法 - 时间工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: #4a90e2;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .pomodoro-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .timer-display {
+            font-size: 6rem;
+            font-weight: bold;
+            margin: 2rem 0;
+            font-family: monospace;
+            color: #333;
+            transition: color 0.3s;
+        }
+        
+        .timer-display.work {
+            color: #e74c3c;
+        }
+        
+        .timer-display.short-break {
+            color: #3498db;
+        }
+        
+        .timer-display.long-break {
+            color: #2ecc71;
+        }
+        
+        .timer-label {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #555;
+        }
+        
+        .timer-progress {
+            width: 100%;
+            height: 10px;
+            background-color: #eee;
+            border-radius: 5px;
+            margin: 1rem 0 2rem;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: #4a90e2;
+            transition: width 1s linear;
+        }
+        
+        .progress-bar.work {
+            background-color: #e74c3c;
+        }
+        
+        .progress-bar.short-break {
+            background-color: #3498db;
+        }
+        
+        .progress-bar.long-break {
+            background-color: #2ecc71;
+        }
+        
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .timer-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .start-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .start-btn:hover {
+            background-color: #27ae60;
+        }
+        
+        .pause-btn {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .pause-btn:hover {
+            background-color: #e67e22;
+        }
+        
+        .reset-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .reset-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .skip-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .skip-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .pomodoro-settings {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .settings-title {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        
+        .settings-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .settings-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .settings-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .settings-input {
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .settings-input:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        
+        .settings-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .save-settings-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+        
+        .save-settings-btn:hover {
+            background-color: #3a80d2;
+        }
+        
+        .pomodoro-stats {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        
+        .stats-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stats-title {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4a90e2;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .task-list {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .task-title {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        
+        .add-task-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .task-input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .task-input:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        
+        .add-task-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .add-task-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+            transition: background-color 0.3s;
+        }
+        
+        .task-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .task-checkbox {
+            margin-right: 0.8rem;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .task-text {
+            flex: 1;
+            color: #333;
+        }
+        
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #999;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .task-action-btn {
+            background: none;
+            border: none;
+            color: #777;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+        
+        .task-action-btn:hover {
+            color: #333;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .timer-display {
+                font-size: 4rem;
+            }
+            
+            .settings-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="back-btn">← 返回</a>
+        <h1>番茄工作法</h1>
+    </header>
+    
+    <div class="container">
+        <div class="pomodoro-card">
+            <div class="timer-label">工作时间</div>
+            <div class="timer-display work" id="timerDisplay">25:00</div>
+            <div class="timer-progress">
+                <div class="progress-bar work" id="progressBar"></div>
+            </div>
+            
+            <div class="timer-controls">
+                <button class="timer-btn start-btn" id="startBtn">开始</button>
+                <button class="timer-btn pause-btn" id="pauseBtn" disabled>暂停</button>
+                <button class="timer-btn reset-btn" id="resetBtn">重置</button>
+                <button class="timer-btn skip-btn" id="skipBtn">跳过</button>
+            </div>
+            
+            <div id="cycleInfo">
+                <span id="currentCycle">1</span> / <span id="totalCycles">4</span> 个工作周期
+            </div>
+        </div>
+        
+        <div class="task-list">
+            <div class="task-header">
+                <h2 class="task-title">任务列表</h2>
+            </div>
+            
+            <div class="add-task-form">
+                <input type="text" class="task-input" id="taskInput" placeholder="添加新任务...">
+                <button class="add-task-btn" id="addTaskBtn">添加</button>
+            </div>
+            
+            <div class="tasks" id="taskList">
+                <!-- 任务将通过JS动态添加 -->
+            </div>
+        </div>
+        
+        <div class="pomodoro-settings">
+            <div class="settings-header">
+                <h2 class="settings-title">设置</h2>
+            </div>
+            
+            <div class="settings-form">
+                <div class="settings-group">
+                    <label class="settings-label">工作时间 (分钟)</label>
+                    <input type="number" class="settings-input" id="workTime" min="1" max="60" value="25">
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">短休息时间 (分钟)</label>
+                    <input type="number" class="settings-input" id="shortBreakTime" min="1" max="30" value="5">
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">长休息时间 (分钟)</label>
+                    <input type="number" class="settings-input" id="longBreakTime" min="1" max="60" value="15">
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">长休息间隔 (周期数)</label>
+                    <input type="number" class="settings-input" id="longBreakInterval" min="1" max="10" value="4">
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">自动开始休息</label>
+                    <div class="settings-checkbox">
+                        <input type="checkbox" id="autoStartBreak">
+                        <span>启用</span>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">自动开始工作</label>
+                    <div class="settings-checkbox">
+                        <input type="checkbox" id="autoStartWork">
+                        <span>启用</span>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">声音提醒</label>
+                    <div class="settings-checkbox">
+                        <input type="checkbox" id="soundEnabled" checked>
+                        <span>启用</span>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">桌面通知</label>
+                    <div class="settings-checkbox">
+                        <input type="checkbox" id="notificationsEnabled" checked>
+                        <span>启用</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="save-settings-btn" id="saveSettingsBtn">保存设置</button>
+        </div>
+        
+        <div class="pomodoro-stats">
+            <div class="stats-header">
+                <h2 class="stats-title">今日统计</h2>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="completedPomodoros">0</div>
+                    <div class="stat-label">已完成番茄数</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-value" id="totalWorkTime">0</div>
+                    <div class="stat-label">总工作时间 (分钟)</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-value" id="completedTasks">0</div>
+                    <div class="stat-label">已完成任务数</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-value" id="currentStreak">0</div>
+                    <div class="stat-label">当前连续番茄数</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <div id="notificationMessage"></div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2023 时间工具 | 让时间管理更简单</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM 元素
+            const timerDisplay = document.getElementById('timerDisplay');
+            const progressBar = document.getElementById('progressBar');
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const skipBtn = document.getElementById('skipBtn');
+            const currentCycle = document.getElementById('currentCycle');
+            const totalCycles = document.getElementById('totalCycles');
+            const taskInput = document.getElementById('taskInput');
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            const taskList = document.getElementById('taskList');
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+            
+            // 设置相关元素
+            const workTimeInput = document.getElementById('workTime');
+            const shortBreakTimeInput = document.getElementById('shortBreakTime');
+            const longBreakTimeInput = document.getElementById('longBreakTime');
+            const longBreakIntervalInput = document.getElementById('longBreakInterval');
+            const autoStartBreakCheckbox = document.getElementById('autoStartBreak');
+            const autoStartWorkCheckbox = document.getElementById('autoStartWork');
+            const soundEnabledCheckbox = document.getElementById('soundEnabled');
+            const notificationsEnabledCheckbox = document.getElementById('notificationsEnabled');
+            const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+            
+            // 统计相关元素
+            const completedPomodorosEl = document.getElementById('completedPomodoros');
+            const totalWorkTimeEl = document.getElementById('totalWorkTime');
+            const completedTasksEl = document.getElementById('completedTasks');
+            const currentStreakEl = document.getElementById('currentStreak');
+            
+            // 默认设置
+            let settings = {
+                workTime: 25,
+                shortBreakTime: 5,
+                longBreakTime: 15,
+                longBreakInterval: 4,
+                autoStartBreak: false,
+                autoStartWork: false,
+                soundEnabled: true,
+                notificationsEnabled: true
+            };
+            
+            // 统计数据
+            let stats = {
+                completedPomodoros: 0,
+                totalWorkTime: 0,
+                completedTasks: 0,
+                currentStreak: 0
+            };
+            
+            // 计时器状态
+            let timerState = {
+                mode: 'work', // 'work', 'shortBreak', 'longBreak'
+                timeLeft: settings.workTime * 60,
+                totalTime: settings.workTime * 60,
+                isRunning: false,
+                cycle: 1,
+                timerId: null
+            };
+            
+            // 任务列表
+            let tasks = [];
+            
+            // 音效
+            const workCompleteSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3');
+            const breakCompleteSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3');
+            
+            // 加载保存的设置
+            function loadSettings() {
+                const savedSettings = localStorage.getItem('pomodoroSettings');
+                if (savedSettings) {
+                    settings = JSON.parse(savedSettings);
+                    
+                    // 更新设置表单
+                    workTimeInput.value = settings.workTime;
+                    shortBreakTimeInput.value = settings.shortBreakTime;
+                    longBreakTimeInput.value = settings.longBreakTime;
+                    longBreakIntervalInput.value = settings.longBreakInterval;
+                    autoStartBreakCheckbox.checked = settings.autoStartBreak;
+                    autoStartWorkCheckbox.checked = settings.autoStartWork;
+                    soundEnabledCheckbox.checked = settings.soundEnabled;
+                    notificationsEnabledCheckbox.checked = settings.notificationsEnabled;
+                    
+                    // 更新总周期数显示
+                    totalCycles.textContent = settings.longBreakInterval;
+                }
+            }
+            
+            // 保存设置
+            function saveSettings() {
+                settings.workTime = parseInt(workTimeInput.value);
+                settings.shortBreakTime = parseInt(shortBreakTimeInput.value);
+                settings.longBreakTime = parseInt(longBreakTimeInput.value);
+                settings.longBreakInterval = parseInt(longBreakIntervalInput.value);
+                settings.autoStartBreak = autoStartBreakCheckbox.checked;
+                settings.autoStartWork = autoStartWorkCheckbox.checked;
+                settings.soundEnabled = soundEnabledCheckbox.checked;
+                settings.notificationsEnabled = notificationsEnabledCheckbox.checked;
+                
+                localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+                
+                // 更新总周期数显示
+                totalCycles.textContent = settings.longBreakInterval;
+                
+                // 如果计时器未运行，重置为新的工作时间
+                if (!timerState.isRunning) {
+                    resetTimer();
+                }
+                
+                showNotification('设置已保存');
+            }
+            
+            // 加载统计数据
+            function loadStats() {
+                const savedStats = localStorage.getItem('pomodoroStats');
+                if (savedStats) {
+                    stats = JSON.parse(savedStats);
+                    updateStatsDisplay();
+                }
+            }
+            
+            // 保存统计数据
+            function saveStats() {
+                localStorage.setItem('pomodoroStats', JSON.stringify(stats));
+                updateStatsDisplay();
+            }
+            
+            // 更新统计显示
+            function updateStatsDisplay() {
+                completedPomodorosEl.textContent = stats.completedPomodoros;
+                totalWorkTimeEl.textContent = stats.totalWorkTime;
+                completedTasksEl.textContent = stats.completedTasks;
+                currentStreakEl.textContent = stats.currentStreak;
+            }
+            
+            // 加载任务
+            function loadTasks() {
+                const savedTasks = localStorage.getItem('pomodoroTasks');
+                if (savedTasks) {
+                    tasks = JSON.parse(savedTasks);
+                    renderTasks();
+                }
+            }
+            
+            // 保存任务
+            function saveTasks() {
+                localStorage.setItem('pomodoroTasks', JSON.stringify(tasks));
+            }
+            
+            // 渲染任务列表
+            function renderTasks() {
+                taskList.innerHTML = '';
+                
+                tasks.forEach((task, index) => {
+                    const taskItem = document.createElement('div');
+                    taskItem.className = `task-item ${task.completed ? 'completed' : ''}`;
+                    
+                    taskItem.innerHTML = `
+                        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
+                        <div class="task-text">${task.text}</div>
+                        <div class="task-actions">
+                            <button class="task-action-btn" title="删除">🗑️</button>
+                        </div>
+                    `;
+                    
+                    // 添加任务完成事件
+                    const checkbox = taskItem.querySelector('.task-checkbox');
+                    checkbox.addEventListener('change', function() {
+                        tasks[index].completed = this.checked;
+                        taskItem.classList.toggle('completed', this.checked);
+                        
+                        if (this.checked) {
+                            stats.completedTasks++;
+                            saveStats();
+                        } else {
+                            stats.completedTasks--;
+                            saveStats();
+                        }
+                        
+                        saveTasks();
+                    });
+                    
+                    // 添加删除任务事件
+                    const deleteBtn = taskItem.querySelector('.task-action-btn');
+                    deleteBtn.addEventListener('click', function() {
+                        if (confirm('确定要删除这个任务吗？')) {
+                            if (tasks[index].completed) {
+                                stats.completedTasks--;
+                                saveStats();
+                            }
+                            
+                            tasks.splice(index, 1);
+                            saveTasks();
+                            renderTasks();
+                        }
+                    });
+                    
+                    taskList.appendChild(taskItem);
+                });
+            }
+            
+            // 添加新任务
+            function addTask(text) {
+                if (text.trim() === '') return;
+                
+                tasks.push({
+                    text: text,
+                    completed: false
+                });
+                
+                saveTasks();
+                renderTasks();
+                taskInput.value = '';
+            }
+            
+            // 格式化时间
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            
+            // 更新计时器显示
+            function updateTimerDisplay() {
+                timerDisplay.textContent = formatTime(timerState.timeLeft);
+                
+                // 更新进度条
+                const progress = ((timerState.totalTime - timerState.timeLeft) / timerState.totalTime) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                // 更新标题
+                document.title = `${formatTime(timerState.timeLeft)} - 番茄工作法`;
+            }
+            
+            // 更新模式
+            function updateMode(mode) {
+                timerState.mode = mode;
+                
+                // 更新样式
+                timerDisplay.className = `timer-display ${mode}`;
+                progressBar.className = `progress-bar ${mode}`;
+                
+                // 更新标签
+                const timerLabel = document.querySelector('.timer-label');
+                if (mode === 'work') {
+                    timerLabel.textContent = '工作时间';
+                } else if (mode === 'shortBreak') {
+                    timerLabel.textContent = '短休息';
+                } else if (mode === 'longBreak') {
+                    timerLabel.textContent = '长休息';
+                }
+                
+                // 设置时间
+                if (mode === 'work') {
+                    timerState.totalTime = settings.workTime * 60;
+                } else if (mode === 'shortBreak') {
+                    timerState.totalTime = settings.shortBreakTime * 60;
+                } else if (mode === 'longBreak') {
+                    timerState.totalTime = settings.longBreakTime * 60;
+                }
+                
+                timerState.timeLeft = timerState.totalTime;
+                updateTimerDisplay();
+            }
+            
+            // 开始计时器
+            function startTimer() {
+                if (timerState.isRunning) return;
+                
+                timerState.isRunning = true;
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                
+                timerState.timerId = setInterval(function() {
+                    timerState.timeLeft--;
+                    updateTimerDisplay();
+                    
+                    if (timerState.timeLeft <= 0) {
+                        clearInterval(timerState.timerId);
+                        timerCompleted();
+                    }
+                }, 1000);
+            }
+            
+            // 暂停计时器
+            function pauseTimer() {
+                if (!timerState.isRunning) return;
+                
+                timerState.isRunning = false;
+                clearInterval(timerState.timerId);
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+            }
+            
+            // 重置计时器
+            function resetTimer() {
+                pauseTimer();
+                updateMode('work');
+                timerState.cycle = 1;
+                currentCycle.textContent = timerState.cycle;
+                stats.currentStreak = 0;
+                saveStats();
+            }
+            
+            // 跳过当前计时器
+            function skipTimer() {
+                pauseTimer();
+                timerCompleted();
+            }
+            
+            // 计时器完成
+            function timerCompleted() {
+                // 播放声音
+                if (settings.soundEnabled) {
+                    if (timerState.mode === 'work') {
+                        workCompleteSound.play();
+                    } else {
+                        breakCompleteSound.play();
+                    }
+                }
+                
+                // 显示通知
+                if (settings.notificationsEnabled) {
+                    if (timerState.mode === 'work') {
+                        showNotification('工作时间结束！休息一下吧。');
+                        
+                        // 更新统计
+                        stats.completedPomodoros++;
+                        stats.totalWorkTime += settings.workTime;
+                        stats.currentStreak++;
+                        saveStats();
+                    } else {
+                        showNotification('休息时间结束！开始新的工作周期。');
+                    }
+                }
+                
+                // 切换模式
+                if (timerState.mode === 'work') {
+                    // 工作结束后，判断是短休息还是长休息
+                    if (timerState.cycle % settings.longBreakInterval === 0) {
+                        updateMode('longBreak');
+                    } else {
+                        updateMode('shortBreak');
+                    }
+                    
+                    // 自动开始休息
+                    if (settings.autoStartBreak) {
+                        startTimer();
+                    } else {
+                        startBtn.disabled = false;
+                        pauseBtn.disabled = true;
+                    }
+                } else {
+                    // 休息结束后，开始新的工作周期
+                    if (timerState.mode === 'longBreak') {
+                        timerState.cycle = 1;
+                    } else {
+                        timerState.cycle++;
+                    }
+                    
+                    currentCycle.textContent = timerState.cycle;
+                    updateMode('work');
+                    
+                    // 自动开始工作
+                    if (settings.autoStartWork) {
+                        startTimer();
+                    } else {
+                        startBtn.disabled = false;
+                        pauseBtn.disabled = true;
+                    }
+                }
+            }
+            
+            // 显示通知
+            function showNotification(message) {
+                notificationMessage.textContent = message;
+                notification.style.display = 'block';
+                
+                // 请求桌面通知权限
+                if (settings.notificationsEnabled && "Notification" in window) {
+                    if (Notification.permission === "granted") {
+                        new Notification("番茄工作法", {
+                            body: message,
+                            icon: "https://cdn-icons-png.flaticon.com/512/1531/1531173.png"
+                        });
+                    } else if (Notification.permission !== "denied") {
+                        Notification.requestPermission().then(function(permission) {
+                            if (permission === "granted") {
+                                new Notification("番茄工作法", {
+                                    body: message,
+                                    icon: "https://cdn-icons-png.flaticon.com/512/1531/1531173.png"
+                                });
+                            }
+                        });
+                    }
+                }
+                
+                // 3秒后自动隐藏
+                setTimeout(function() {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+            
+            // 重置每日统计数据
+            function resetDailyStats() {
+                const today = new Date().toLocaleDateString();
+                const lastResetDay = localStorage.getItem('lastResetDay');
+                
+                if (lastResetDay !== today) {
+                    stats = {
+                        completedPomodoros: 0,
+                        totalWorkTime: 0,
+                        completedTasks: 0,
+                        currentStreak: 0
+                    };
+                    
+                    saveStats();
+                    localStorage.setItem('lastResetDay', today);
+                }
+            }
+            
+            // 事件监听器
+            startBtn.addEventListener('click', startTimer);
+            pauseBtn.addEventListener('click', pauseTimer);
+            resetBtn.addEventListener('click', resetTimer);
+            skipBtn.addEventListener('click', skipTimer);
+            saveSettingsBtn.addEventListener('click', saveSettings);
+            
+            // 添加任务事件
+            addTaskBtn.addEventListener('click', function() {
+                addTask(taskInput.value);
+            });
+            
+            taskInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTask(taskInput.value);
+                }
+            });
+            
+            // 初始化
+            function init() {
+                loadSettings();
+                loadStats();
+                loadTasks();
+                resetDailyStats();
+                updateTimerDisplay();
+                
+                // 请求通知权限
+                if ("Notification" in window && Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+            }
+            
+            init();
+        });
+    </script>
+</body>
+</html>
