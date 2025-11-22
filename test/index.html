@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手速测试 - 天空之城</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #6c5ce7;
+            --accent-color: #00cec9;
+            --text-color: #333;
+            --light-text: #666;
+            --bg-color: #f5f7fa;
+            --card-bg: #fff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+            --hover-shadow: 0 7px 14px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .description {
+            color: var(--light-text);
+            margin-bottom: 30px;
+        }
+
+        .click-area {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #6c5ce7, #4a90e2);
+            border-radius: var(--border-radius);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .click-area:hover {
+            transform: scale(1.02);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .click-area:active {
+            transform: scale(0.98);
+        }
+
+        .click-area.disabled {
+            background: linear-gradient(135deg, #a0a0a0, #c0c0c0);
+            cursor: not-allowed;
+        }
+
+        .click-effect {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .timer {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background-color: var(--bg-color);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            width: 45%;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: var(--light-text);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .best-score {
+            background-color: #ffeaa7;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+        }
+
+        .best-title {
+            font-size: 1rem;
+            color: #b7791f;
+            margin-bottom: 5px;
+        }
+
+        .best-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #b7791f;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-pause {
+            background-color: #f39c12;
+            margin-left: 10px;
+        }
+
+        .btn-pause:hover {
+            background-color: #e67e22;
+        }
+
+        .btn-reset {
+            background-color: #e74c3c;
+            margin-left: 10px;
+        }
+
+        .btn-reset:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-restart {
+            background-color: #27ae60;
+            margin-left: 10px;
+        }
+
+        .btn-restart:hover {
+            background-color: #219653;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .click-area {
+                height: 150px;
+                font-size: 1.2rem;
+            }
+
+            .timer {
+                font-size: 1.5rem;
+            }
+
+            .stat-value, .best-value {
+                font-size: 1.2rem;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+            }
+            
+            .buttons-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn-pause, .btn-reset, .btn-restart {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>手速测试挑战</h1>
+        <p class="description">在10秒内尽可能快地点击下方区域，测试你的手速极限！</p>
+        
+        <div class="timer" id="timer">10.0</div>
+        
+        <div class="click-area" id="clickArea">
+            点击这里开始测试
+        </div>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-title">总点击次数</div>
+                <div class="stat-value" id="clickCount">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">每秒点击次数</div>
+                <div class="stat-value" id="clicksPerSecond">0.0</div>
+            </div>
+        </div>
+        
+        <div class="best-score">
+            <div class="best-title">历史最佳成绩</div>
+            <div class="best-value" id="bestScore">0.0 次/秒</div>
+        </div>
+        
+        <div class="buttons-container">
+            <button class="btn" id="startBtn">开始测试</button>
+            <button class="btn btn-pause" id="pauseBtn">暂停</button>
+            <button class="btn btn-restart" id="restartBtn">重来</button>
+            <button class="btn btn-reset" id="resetBtn">重置记录</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const clickArea = document.getElementById('clickArea');
+            const timer = document.getElementById('timer');
+            const clickCount = document.getElementById('clickCount');
+            const clicksPerSecond = document.getElementById('clicksPerSecond');
+            const bestScore = document.getElementById('bestScore');
+            const startBtn = document.getElementById('startBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            
+            // 初始化变量
+            let count = 0;
+            let timeLeft = 10.0;
+            let isRunning = false;
+            let isPaused = false;
+            let timerInterval;
+            let startTime;
+            let pauseStartTime;
+            let totalPausedTime = 0;
+            let best = localStorage.getItem('bestClickSpeed') || 0;
+            
+            // 初始化最佳成绩
+            bestScore.textContent = best + ' 次/秒';
+            
+            // 更新按钮状态
+            function updateButtonStates() {
+                startBtn.disabled = isRunning;
+                pauseBtn.disabled = !isRunning;
+                
+                if (isRunning) {
+                    startBtn.style.opacity = '0.5';
+                    pauseBtn.style.opacity = '1';
+                    restartBtn.style.opacity = '1';
+                } else {
+                    startBtn.style.opacity = '1';
+                    pauseBtn.style.opacity = '0.5';
+                    restartBtn.style.opacity = '0.5';
+                }
+                
+                if (isPaused) {
+                    pauseBtn.textContent = '继续';
+                } else {
+                    pauseBtn.textContent = '暂停';
+                }
+            }
+            
+            // 开始测试
+            function startTest() {
+                if (isRunning) return;
+                
+                isRunning = true;
+                isPaused = false;
+                count = 0;
+                timeLeft = 10.0;
+                totalPausedTime = 0;
+                clickCount.textContent = count;
+                clicksPerSecond.textContent = '测试中...';
+                clickArea.textContent = '开始点击！';
+                clickArea.classList.remove('disabled');
+                
+                startTime = Date.now();
+                
+                updateButtonStates();
+                
+                // 更新计时器
+                timerInterval = setInterval(function() {
+                    if (!isPaused) {
+                        const elapsedTime = (Date.now() - startTime - totalPausedTime) / 1000;
+                        timeLeft = Math.max(0, 10.0 - elapsedTime);
+                        timer.textContent = timeLeft.toFixed(1);
+                        
+                        if (timeLeft <= 0) {
+                            endTest();
+                        }
+                    }
+                }, 100);
+            }
+            
+            // 暂停测试
+            function pauseTest() {
+                if (!isRunning || isPaused) return;
+                
+                isPaused = true;
+                pauseStartTime = Date.now();
+                clickArea.textContent = '已暂停';
+                clickArea.classList.add('disabled');
+                
+                updateButtonStates();
+            }
+            
+            // 继续测试
+            function resumeTest() {
+                if (!isRunning || !isPaused) return;
+                
+                totalPausedTime += Date.now() - pauseStartTime;
+                isPaused = false;
+                clickArea.textContent = '继续点击！';
+                clickArea.classList.remove('disabled');
+                
+                updateButtonStates();
+            }
+            
+            // 重新开始测试
+            function restartTest() {
+                // 清除当前测试的计时器
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+                
+                // 重置状态
+                isRunning = false;
+                isPaused = false;
+                
+                // 开始新测试
+                startTest();
+            }
+            
+            // 暂停/继续切换
+            function togglePause() {
+                if (!isRunning) return;
+                
+                if (isPaused) {
+                    resumeTest();
+                } else {
+                    pauseTest();
+                }
+            }
+            
+            // 结束测试
+            function endTest() {
+                clearInterval(timerInterval);
+                isRunning = false;
+                isPaused = false;
+                
+                // 测试完成后计算手速
+                const finalSpeed = (count / 10).toFixed(1);
+                clicksPerSecond.textContent = finalSpeed + ' 次/秒';
+                
+                // 更新界面
+                clickArea.textContent = '测试结束！';
+                clickArea.classList.add('disabled');
+                
+                updateButtonStates();
+                
+                // 更新最佳成绩
+                if (parseFloat(finalSpeed) > parseFloat(best)) {
+                    best = finalSpeed;
+                    localStorage.setItem('bestClickSpeed', best);
+                    bestScore.textContent = best + ' 次/秒';
+                    
+                    // 显示新纪录提示
+                    clickArea.textContent = '恭喜！新纪录：' + finalSpeed + ' 次/秒';
+                }
+            }
+            
+            // 重置记录
+            function resetRecord() {
+                if (confirm('确定要重置历史最佳成绩吗？')) {
+                    localStorage.removeItem('bestClickSpeed');
+                    best = 0;
+                    bestScore.textContent = '0.0 次/秒';
+                }
+            }
+            
+            // 点击效果
+            function createRipple(event) {
+                const ripple = document.createElement('span');
+                ripple.classList.add('click-effect');
+                
+                const diameter = Math.max(clickArea.clientWidth, clickArea.clientHeight);
+                const radius = diameter / 2;
+                
+                const rect = clickArea.getBoundingClientRect();
+                const x = event.clientX - rect.left - radius;
+                const y = event.clientY - rect.top - radius;
+                
+                ripple.style.width = ripple.style.height = `${diameter}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                clickArea.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            }
+            
+            // 事件监听
+            clickArea.addEventListener('click', function(event) {
+                if (!isRunning) {
+                    startTest();
+                    return;
+                }
+                
+                if (isPaused) return;
+                
+                createRipple(event);
+                count++;
+                clickCount.textContent = count;
+            });
+            
+            startBtn.addEventListener('click', startTest);
+            pauseBtn.addEventListener('click', togglePause);
+            resetBtn.addEventListener('click', resetRecord);
+            restartBtn.addEventListener('click', restartTest);
+            
+            // 防止拖动和选择文本
+            clickArea.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
+            
+            clickArea.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+            });
+            
+            // 初始化按钮状态
+            updateButtonStates();
+            pauseBtn.disabled = true;
+            pauseBtn.style.opacity = '0.5';
+            
+            // 键盘快捷键
+            document.addEventListener('keydown', function(e) {
+                // 空格键开始/暂停
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (!isRunning) {
+                        startTest();
+                    } else {
+                        togglePause();
+                    }
+                }
+                
+                // R键重新开始
+                if (e.code === 'KeyR') {
+                    restartTest();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

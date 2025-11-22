@@ -218,7 +218,16 @@
     </style>
 </head>
 <body>
-    <div class="chat-container">
+        <!-- 添加密码验证容器 -->
+        <div id="auth-container" class="auth-container">
+            <h2>AI对话助手</h2>
+            <div class="auth-form">
+                <input type="password" id="access-password" placeholder="请输入访问密码">
+                <button id="access-button">进入系统</button>
+            </div>
+        </div>
+
+    <div class="chat-container" style="display: none;">
         <div class="chat-header">
             <div class="header-actions">
                 <button id="settings-button" class="header-button">设置</button>
@@ -279,6 +288,51 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            const chatContainer = document.querySelector('.chat-container');
+            const authContainer = document.getElementById('auth-container');
+            const accessPassword = document.getElementById('access-password');
+            const accessButton = document.getElementById('access-button');
+            
+            // 访问密码
+            const accessCode = "223344"; // 您可以修改为您想要的访问密码
+            
+            // 检查是否已经验证过密码
+            const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+            if (isAuthenticated) {
+                showChatInterface();
+            }
+            
+            // 验证访问密码
+            function verifyAccessPassword() {
+                const password = accessPassword.value.trim();
+                if (password === accessCode) {
+                    // 密码正确，显示聊天界面
+                    localStorage.setItem('isAuthenticated', 'true');
+                    showChatInterface();
+                } else {
+                    alert('密码错误，请重试！');
+                }
+            }
+            
+            // 显示聊天界面
+            function showChatInterface() {
+                authContainer.style.display = 'none';
+                chatContainer.style.display = 'flex';
+                // 聊天界面显示后，聚焦到输入框
+                document.getElementById('message-input').focus();
+            }
+            
+            // 访问按钮点击事件
+            accessButton.addEventListener('click', verifyAccessPassword);
+            
+            // 密码输入框按Enter键验证
+            accessPassword.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    verifyAccessPassword();
+                }
+            });
             const chatMessages = document.getElementById('chat-messages');
             const messageInput = document.getElementById('message-input');
             const sendButton = document.getElementById('send-button');

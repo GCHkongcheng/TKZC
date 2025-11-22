@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>记忆力测试 - 天空之城</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #4a90e2;
+      --secondary-color: #6c5ce7;
+      --accent-color: #00cec9;
+      --text-color: #333;
+      --light-text: #666;
+      --bg-color: #f5f7fa;
+      --card-bg: #fff;
+      --header-bg: linear-gradient(135deg, #6c5ce7, #4a90e2);
+      --footer-bg: #2d3436;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+      --hover-shadow: 0 7px 14px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+      --border-radius: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft YaHei", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    header {
+      background: var(--header-bg);
+      color: white;
+      padding: 1.5rem 0;
+      text-align: center;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .site-title {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+
+    .site-description {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .back-link {
+      position: absolute;
+      top: 1.5rem;
+      left: 1.5rem;
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .back-link:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .back-link i {
+      font-size: 1rem;
+    }
+
+    .main-content {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+      flex: 1;
+    }
+
+    .test-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .test-card {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .test-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--hover-shadow);
+    }
+
+    .test-card-image {
+      height: 180px;
+      background-color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 3rem;
+    }
+
+    .test-card:nth-child(2) .test-card-image {
+      background-color: var(--secondary-color);
+    }
+
+    .test-card-content {
+      padding: 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .test-card-title {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+
+    .test-card-description {
+      color: var(--light-text);
+      margin-bottom: 1.5rem;
+      flex: 1;
+    }
+
+    .test-card-button {
+      display: inline-block;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 30px;
+      font-weight: bold;
+      text-align: center;
+      transition: var(--transition);
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .test-card:nth-child(2) .test-card-button {
+      background-color: var(--secondary-color);
+    }
+
+    .test-card-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    footer {
+      background-color: var(--footer-bg);
+      color: white;
+      text-align: center;
+      padding: 1.5rem 0;
+      margin-top: 2rem;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .copyright {
+      opacity: 0.8;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .test-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="../index.html" class="back-link">
+      <i class="fas fa-arrow-left"></i>
+      <span>返回首页</span>
+    </a>
+    <div class="header-content">
+      <h1 class="site-title">记忆力测试</h1>
+      <p class="site-description">挑战你的记忆力极限，提升大脑记忆能力</p>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="test-cards">
+      <div class="test-card">
+        <div class="test-card-image">
+          <i class="fas fa-brain"></i>
+        </div>
+        <div class="test-card-content">
+          <h2 class="test-card-title">记忆力测试 1</h2>
+          <p class="test-card-description">
+            测试你记忆12个随机字母的能力。系统会依次显示12个随机大写英文字母（不包含U和V），你需要在所有字母显示完毕后，按照正确的顺序输入这些字母。
+          </p>
+          <a href="test1.html" class="test-card-button">开始测试</a>
+        </div>
+      </div>
+
+      <div class="test-card">
+        <div class="test-card-image">
+          <i class="fas fa-lightbulb"></i>
+        </div>
+        <div class="test-card-content">
+          <h2 class="test-card-title">记忆力测试 2</h2>
+          <p class="test-card-description">
+            挑战更高难度！测试你记忆8个特定规则生成的字母的能力。系统会依次显示8个随机大写英文字母（不包含U和V），这些字母来自8个不同的字母组，你需要在所有字母显示完毕后，按照正确的顺序输入这些字母。
+          </p>
+          <a href="test2.html" class="test-card-button">开始测试</a>
+        </div>
+      </div>
+
+      <div class="test-card">
+        <div class="test-card-image" style="background-color: var(--accent-color);">
+          <i class="fas fa-language"></i>
+        </div>
+        <div class="test-card-content">
+          <h2 class="test-card-title">词根联想记忆</h2>
+          <p class="test-card-description">
+            通过两个英文字母组成的词根来联想对应的词，帮助您建立强大的记忆联系，提高记忆效率。卡片式学习，轻松掌握词根记忆法。
+          </p>
+          <a href="roots.html" class="test-card-button" style="background-color: var(--accent-color);">开始练习</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-content">
+      <p class="copyright">© 2023 天空之城 - 记忆力测试</p>
+    </div>
+  </footer>
+</body>
+</html>
