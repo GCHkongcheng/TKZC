@@ -130,6 +130,40 @@
             background-color: var(--neon-green);
         }
 
+        #combo-display {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            display: none;
+            text-shadow: 0 0 5px var(--neon-blue);
+            z-index: 5;
+            transform: skew(-10deg);
+        }
+
+        #combo-count {
+            font-size: 40px;
+            font-weight: bold;
+            color: var(--neon-blue);
+            line-height: 1;
+            font-style: italic;
+        }
+
+        #combo-label {
+            font-size: 14px;
+            color: #fff;
+            letter-spacing: 2px;
+        }
+
+        #combo-multiplier {
+            font-size: 24px;
+            color: var(--neon-pink);
+            margin-top: 5px;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+
         #start-screen, #game-over-screen {
             position: absolute;
             top: 0;
@@ -314,6 +348,12 @@
                 <div class="battery-cell filled"></div>
             </div>
 
+            <div id="combo-display">
+                <div id="combo-count">0</div>
+                <div id="combo-label">COMBO</div>
+                <div id="combo-multiplier">×1</div>
+            </div>
+
             <div id="start-screen">
                 <h1 class="glitch" data-text="NEON MIKU RUN">NEON MIKU RUN</h1>
                 <p>HIGH SCORE: <span id="start-high-score">0</span></p>
@@ -381,6 +421,13 @@
         let gameSpeed = 5;
         let battery = 3;
         let hasShield = false;
+        
+        // Combo System
+        let combo = 0;
+        let comboMultiplier = 1;
+        const comboDisplay = document.getElementById('combo-display');
+        const comboCountEl = document.getElementById('combo-count');
+        const comboMultiplierEl = document.getElementById('combo-multiplier');
         
         // Spawn Logic Variables
         let spawnTimer = 0;
@@ -815,13 +862,22 @@
                 // Slide Logic
                 const isSlideInput = input.keys.down || input.keys.swipeDown;
                 
-                if (isSlideInput && (this.isGrounded || this.isSliding)) {
+                // Allow slide in air (Fast Fall)
+                if (isSlideInput) {
                     if (!this.isSliding) {
                         this.isSliding = true;
                         this.height = 30; // Shrink hitbox
-                        this.y += 30; // Align to ground
+                        
+                        if (this.isGrounded) {
+                            this.y += 30; // Align to ground
+                            createParticles(this.x, this.y + this.height, 5, COLORS.blue);
+                        } else {
+                            // Fast Fall / Aerial Dive
+                            this.vy = 20; 
+                            createParticles(this.x, this.y + this.height, 5, COLORS.white);
+                        }
+                        
                         this.slideTimer = input.keys.swipeDown ? 45 : 0; // Duration for swipe, hold for key
-                        createParticles(this.x, this.y + this.height, 5, COLORS.blue);
                     }
                     if (input.keys.swipeDown && this.slideTimer > 0) this.slideTimer--;
                 } else if (this.isSliding) {
@@ -1405,16 +1461,43 @@
         });
 
         window.addEventListener('touchstart', (e) => {
-            input.keys.touch = true;
             touchStartY = e.changedTouches[0].screenY;
-        });
+            // Do NOT immediately trigger jump on touch start to allow for swipe detection
+            // input.keys.touch = true; 
+        }, {passive: false});
         
-        window.addEventListener('touchend', (e) => {
-            input.keys.touch = false;
-            const touchEndY = e.changedTouches[0].screenY;
-            if (touchEndY - touchStartY > 50) { // Swipe Down
+        window.addEventListener('touchmove', (e) => {
+            const touchCurrentY = e.changedTouches[0].screenY;
+            const dy = touchCurrentY - touchStartY;
+            
+            if (dy > 30) { // Swipe Down detected (Threshold 30px)
                 input.keys.swipeDown = true;
-                setTimeout(() => input.keys.swipeDown = false, 300); // Reset swipe trigger
+                input.keys.touch = false; // Cancel any potential jump
+                e.preventDefault(); // Prevent browser scrolling
+            } else if (dy < -30) { // Swipe Up (Optional: Explicit Jump)
+                input.keys.touch = true;
+                input.keys.swipeDown = false;
+                e.preventDefault();
+            }
+        }, {passive: false});
+
+        window.addEventListener('touchend', (e) => {
+            const touchEndY = e.changedTouches[0].screenY;
+            const dy = touchEndY - touchStartY;
+            
+            if (dy > 30) {
+                // Already handled in touchmove, but ensure state
+                input.keys.swipeDown = true;
+                setTimeout(() => input.keys.swipeDown = false, 200);
+            } else if (Math.abs(dy) < 10) {
+                // Tap detected (minimal movement) -> Jump
+                input.keys.touch = true;
+                // Short delay to reset touch for short hops vs holds
+                setTimeout(() => input.keys.touch = false, 150);
+            } else {
+                 // Reset
+                 input.keys.touch = false;
+                 input.keys.swipeDown = false;
             }
         });
 
@@ -1471,6 +1554,46 @@
             });
         }
 
+        function updateCombo(isSuccess) {
+            if (isSuccess) {
+                combo++;
+                // Multiplier Logic
+                if (combo < 5) comboMultiplier = 1;
+                else if (combo < 10) comboMultiplier = 1.25;
+                else if (combo < 20) comboMultiplier = 1.5;
+                else if (combo < 30) comboMultiplier = 2;
+                else comboMultiplier = 3;
+                
+                // Visuals
+                comboDisplay.style.display = 'block';
+                comboCountEl.innerText = combo;
+                comboMultiplierEl.innerText = '×' + comboMultiplier;
+                
+                // Pulse animation
+                comboCountEl.style.transform = 'scale(1.5)';
+                setTimeout(() => comboCountEl.style.transform = 'scale(1)', 100);
+                
+                // Color grades
+                if (comboMultiplier >= 3) {
+                    comboCountEl.style.color = COLORS.pink;
+                    comboMultiplierEl.style.color = COLORS.pink;
+                } else if (comboMultiplier >= 2) {
+                    comboCountEl.style.color = COLORS.yellow;
+                    comboMultiplierEl.style.color = COLORS.yellow;
+                } else {
+                    comboCountEl.style.color = COLORS.blue;
+                    comboMultiplierEl.style.color = COLORS.blue;
+                }
+                
+            } else {
+                // Reset
+                if (combo > 5) createFloatingText('COMBO LOST', player.x, player.y - 50, '#FF0000');
+                combo = 0;
+                comboMultiplier = 1;
+                comboDisplay.style.display = 'none';
+            }
+        }
+
         function gameOver() {
             gameRunning = false;
             stopMusic();
@@ -1488,6 +1611,7 @@
         function resetGame() {
             score = 0;
             scoreEl.innerText = '0';
+            updateCombo(false); // Reset combo
             battery = 3;
             updateBattery();
             obstacles = [];
@@ -1686,6 +1810,7 @@
                 if (!obs.markedForDeletion && checkCollision(player, obs, -10)) {
                     
                     if (!hasShield) {
+                        updateCombo(false); // Reset combo on hit
                         battery--;
                         updateBattery();
                         createParticles(player.x, player.y, 20, COLORS.pink);
@@ -1723,10 +1848,15 @@
                 if (!col.markedForDeletion && checkCollision(player, col, -5)) {
                     
                     if (col.type === 'coin') {
-                        score += 50;
+                        updateCombo(true);
+                        const points = Math.floor(50 * comboMultiplier);
+                        score += points;
                         createParticles(col.x, col.y, 10, COLORS.yellow);
                         playSound('coin');
-                        createFloatingText('+50', col.x, col.y, COLORS.yellow);
+                        
+                        let text = '+' + points;
+                        // if (comboMultiplier > 1) text += ' x' + comboMultiplier; // Combo display already shows multiplier
+                        createFloatingText(text, col.x, col.y, COLORS.yellow);
                     } else if (col.type === 'battery') {
                         if (battery < 3) {
                             battery++;
