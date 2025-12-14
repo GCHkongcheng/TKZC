@@ -1255,6 +1255,30 @@
             }
         }
 
+        // Object Pool System
+        class ObjectPool {
+            constructor(createFn, resetFn) {
+                this.pool = [];
+                this.createFn = createFn;
+                this.resetFn = resetFn;
+            }
+
+            get(...args) {
+                let obj;
+                if (this.pool.length > 0) {
+                    obj = this.pool.pop();
+                } else {
+                    obj = this.createFn();
+                }
+                this.resetFn(obj, ...args);
+                return obj;
+            }
+
+            release(obj) {
+                this.pool.push(obj);
+            }
+        }
+
         class Particle {
             constructor(x, y, color) {
                 this.x = x;
@@ -1266,6 +1290,18 @@
                 this.markedForDeletion = false;
                 this.life = 1.0;
             }
+            
+            reset(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 5 + 2;
+                this.speedX = Math.random() * 3 - 1.5;
+                this.speedY = Math.random() * 3 - 1.5;
+                this.color = color;
+                this.markedForDeletion = false;
+                this.life = 1.0;
+            }
+
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
@@ -1280,6 +1316,12 @@
                 ctx.restore();
             }
         }
+
+        // Initialize Particle Pool
+        const particlePool = new ObjectPool(
+            () => new Particle(0, 0, '#fff'),
+            (p, x, y, color) => p.reset(x, y, color)
+        );
 
         class BackgroundLayer {
             constructor(image, speedModifier, yOffset = 0, isSky = false) {
@@ -1514,7 +1556,8 @@
         // Helper Functions
         function createParticles(x, y, count, color) {
             for (let i = 0; i < count; i++) {
-                particles.push(new Particle(x, y, color));
+                // Use Object Pool instead of new Particle
+                particles.push(particlePool.get(x, y, color));
             }
         }
 
@@ -1936,16 +1979,23 @@
             });
             floatingTexts = floatingTexts.filter(ft => !ft.markedForDeletion);
 
-            // Particles
-            particles.forEach(p => {
+            // Particles (Optimized with Object Pool)
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
                 p.update();
                 p.draw();
-            });
+                if (p.markedForDeletion) {
+                    particlePool.release(p);
+                    // Fast remove (Swap with last)
+                    particles[i] = particles[particles.length - 1];
+                    particles.pop();
+                }
+            }
 
             // Cleanup
             obstacles = obstacles.filter(o => !o.markedForDeletion);
             collectibles = collectibles.filter(c => !c.markedForDeletion);
-            particles = particles.filter(p => !p.markedForDeletion);
+            // particles cleanup is done in the loop above
 
             // Game Speed increment
             if (frameCount % 600 === 0) gameSpeed += 0.5;
