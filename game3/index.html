@@ -433,6 +433,16 @@
         let spawnTimer = 0;
         let baseSpawnInterval = 100; // Decreases over time
         const minSpawnInterval = 40;
+        
+        // Advanced Rhythm Spawning
+        let currentSpawnInterval = baseSpawnInterval; // Interpolated value
+        let rhythmPhase = 0; // 0-1 cycle
+        const rhythmCycleLength = 600; // ~10 seconds per cycle (at 60fps)
+        // Phases: 
+        // 0.0 - 0.2: Rest (Slow spawn)
+        // 0.2 - 0.5: Build Up (Normal spawn)
+        // 0.5 - 0.8: Danger Zone (Fast spawn + Music intensity high impact)
+        // 0.8 - 1.0: Cooldown (Normal spawn)
 
         // Audio Context
         let audioCtx;
@@ -1779,25 +1789,64 @@
             // Dynamic Spawn Logic
             spawnTimer++;
             
-            // 1. Base Interval decreases over time (Harder as you go)
-            // Every 500 frames, reduce interval by 2, until minSpawnInterval
-            let currentBaseInterval = Math.max(minSpawnInterval, baseSpawnInterval - Math.floor(frameCount / 500) * 5);
+            // --- Advanced Rhythm-based Spawning System ---
             
-            // 2. Audio Intensity Adjustment (Music Rhythm)
-            // The louder/more intense the music (beat > 100), the faster obstacles spawn.
-            // We reduce the interval based on beat intensity.
-            let dynamicInterval = currentBaseInterval;
+            // 1. Calculate Progression Target (Linear difficulty curve)
+            // Instead of steps, use a smooth target based on frameCount
+            // Target drops from 100 to 40 over 10000 frames (~3 mins)
+            let difficultyProgress = Math.min(1, frameCount / 10000);
+            let targetBaseInterval = baseSpawnInterval - (difficultyProgress * (baseSpawnInterval - minSpawnInterval));
             
-            if (beat > 120) {
-                // High intensity: reduce interval significantly (up to 50%)
-                let reductionFactor = Math.min(0.5, (beat - 120) / 100); 
-                dynamicInterval = currentBaseInterval * (1 - reductionFactor);
+            // 2. Rhythm Phase Cycle
+            rhythmPhase = (frameCount % rhythmCycleLength) / rhythmCycleLength;
+            let phaseModifier = 1.0;
+            
+            // Visual Debug (Optional: can be removed or used for UI)
+            // let phaseName = "";
+
+            if (rhythmPhase < 0.2) {
+                // Rest Zone: Spawn rate slower (1.5x interval)
+                phaseModifier = 1.5;
+                // phaseName = "REST";
+            } else if (rhythmPhase < 0.5) {
+                // Build Up: Normal speed
+                phaseModifier = 1.0;
+                // phaseName = "BUILD";
+            } else if (rhythmPhase < 0.8) {
+                // Danger Zone: Spawn rate faster (0.7x interval)
+                phaseModifier = 0.7;
+                // phaseName = "DANGER";
+                
+                // Add visual tint for danger zone?
+                if (frameCount % 60 === 0) {
+                     // Subtle red flash could go here
+                }
+            } else {
+                // Cooldown: Normal speed
+                phaseModifier = 1.0;
+                // phaseName = "COOL";
             }
             
-            // Ensure we don't spawn impossibly fast (minimum 25 frames spacing)
-            if (dynamicInterval < 25) dynamicInterval = 25;
-
-            if (spawnTimer > dynamicInterval) {
+            // 3. Audio Intensity Impact
+            // Intensity acts as a further multiplier, especially effective in Danger Zone
+            let intensityModifier = 1.0;
+            if (beat > 100) {
+                // Map beat 100-255 to 1.0-0.5 multiplier
+                let intensity = (beat - 100) / 155; // 0 to 1
+                intensityModifier = 1.0 - (intensity * 0.5); 
+            }
+            
+            // 4. Calculate Final Target Interval
+            let finalTargetInterval = targetBaseInterval * phaseModifier * intensityModifier;
+            
+            // Clamp min/max
+            finalTargetInterval = Math.max(25, Math.min(200, finalTargetInterval));
+            
+            // 5. Smooth Interpolation (Lerp)
+            // Smoothly move current interval towards target to avoid jarring jumps
+            currentSpawnInterval += (finalTargetInterval - currentSpawnInterval) * 0.05;
+            
+            if (spawnTimer > currentSpawnInterval) {
                 if (Math.random() > 0.2) spawnObstacle();
                 spawnTimer = 0; // Reset timer
             }
