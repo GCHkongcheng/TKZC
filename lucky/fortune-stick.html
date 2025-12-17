@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽签 - 幸运占卜</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #ff9800, #ff5722);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 90%;
+            margin: 2rem auto;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .fortune-stick-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .sticks-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+            perspective: 1000px;
+        }
+        
+        .stick {
+            width: 10px;
+            height: 150px;
+            background: linear-gradient(to bottom, #8B4513, #A0522D);
+            margin: 0 5px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            transform-origin: bottom center;
+        }
+        
+        .stick:hover {
+            transform: translateY(-10px) rotate(5deg);
+        }
+        
+        .stick-container {
+            width: 200px;
+            height: 100px;
+            background: #8B4513;
+            border-radius: 10px 10px 0 0;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stick-container:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: #A0522D;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            animation: fadeIn 1s ease;
+        }
+        
+        .fortune-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #FFD700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .fortune-content {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+        
+        .fortune-explanation {
+            margin-top: 1.5rem;
+            font-style: italic;
+            opacity: 0.9;
+        }
+        
+        .shake-button {
+            background: #4CAF50;
+            margin-bottom: 1rem;
+        }
+        
+        .shake-button:hover {
+            background: #388E3C;
+        }
+        
+        .draw-button {
+            background: #FF5722;
+        }
+        
+        .draw-button:hover {
+            background: #E64A19;
+        }
+        
+        .back-button {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        button {
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin: 0.5rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px) rotate(-2deg); }
+            20%, 40%, 60%, 80% { transform: translateX(5px) rotate(2deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .shaking {
+            animation: shake 0.5s infinite;
+        }
+        
+        @media (max-width: 768px) {
+            .sticks-container {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .stick {
+                margin: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🥢 抽签 🥢</h1>
+        <p>古老的占卜方式，揭示你的运势与未来</p>
+        
+        <div class="fortune-stick-container">
+            <p>请先摇动签筒，然后抽取一支签来了解您的运势</p>
+            
+            <div class="stick-container" id="stick-container"></div>
+            
+            <div class="sticks-container" id="sticks-container">
+                <!-- 签会在JavaScript中动态生成 -->
+            </div>
+            
+            <div>
+                <button class="shake-button" id="shake-btn">摇动签筒</button>
+                <button class="draw-button" id="draw-btn" disabled>抽取一支签</button>
+            </div>
+            
+            <div class="result-section" id="result">
+                <h2 class="fortune-title" id="fortune-title">上上签</h2>
+                <div class="fortune-content" id="fortune-content">
+                    宝剑锋从磨砺出，梅花香自苦寒来。
+                    坚持不懈，终有所成。
+                </div>
+                <div class="fortune-explanation" id="fortune-explanation">
+                    此签意味着您目前可能正在经历一些挑战或困难，但只要坚持不懈，这些困难终将成为您成长的阶梯。好运即将到来，请保持积极的心态。
+                </div>
+            </div>
+        </div>
+        
+        <button class="back-button" onclick="location.href='index.html'">返回主页</button>
+    </div>
+    
+    <footer>
+        <p>© 2025 幸运占卜 | 仅供娱乐，请勿过度沉迷</p>
+    </footer>
+    
+    <script>
+        // 生成签筒中的签
+        const sticksContainer = document.getElementById('sticks-container');
+        const stickCount = 28; // 签的数量
+        
+        // 初始状态下不显示签
+        sticksContainer.style.display = 'none';
+        
+        // 创建签
+        function createSticks() {
+            sticksContainer.innerHTML = '';
+            for (let i = 0; i < stickCount; i++) {
+                const stick = document.createElement('div');
+                stick.className = 'stick';
+                stick.dataset.index = i;
+                stick.addEventListener('click', function() {
+                    if (document.getElementById('draw-btn').disabled) return;
+                    drawStick(i);
+                });
+                sticksContainer.appendChild(stick);
+            }
+        }
+        
+        // 摇动签筒
+        document.getElementById('shake-btn').addEventListener('click', function() {
+            const stickContainer = document.getElementById('stick-container');
+            stickContainer.classList.add('shaking');
+            
+            // 显示签
+            sticksContainer.style.display = 'flex';
+            
+            // 2秒后停止摇动
+            setTimeout(function() {
+                stickContainer.classList.remove('shaking');
+                document.getElementById('draw-btn').disabled = false;
+            }, 2000);
+            
+            // 重新创建签
+            createSticks();
+            
+            // 隐藏结果
+            document.getElementById('result').style.display = 'none';
+        });
+        
+        // 抽签
+        document.getElementById('draw-btn').addEventListener('click', function() {
+            // 随机选择一支签
+            const randomIndex = Math.floor(Math.random() * stickCount);
+            drawStick(randomIndex);
+        });
+        
+        // 抽取指定的签
+        function drawStick(index) {
+            // 禁用抽签按钮
+            document.getElementById('draw-btn').disabled = true;
+            
+            // 高亮选中的签
+            const sticks = document.querySelectorAll('.stick');
+            sticks.forEach(stick => {
+                if (parseInt(stick.dataset.index) === index) {
+                    stick.style.transform = 'translateY(-30px)';
+                    stick.style.background = 'linear-gradient(to bottom, #FFD700, #FFA500)';
+                    stick.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.7)';
+                } else {
+                    stick.style.opacity = '0.5';
+                }
+            });
+            
+            // 获取签文
+            const fortune = getFortuneByIndex(index);
+            
+            // 显示结果
+            setTimeout(function() {
+                document.getElementById('fortune-title').textContent = fortune.title;
+                document.getElementById('fortune-content').textContent = fortune.content;
+                document.getElementById('fortune-explanation').textContent = fortune.explanation;
+                document.getElementById('result').style.display = 'block';
+                
+                // 平滑滚动到结果区域
+                document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+            }, 1000);
+        }
+        
+        // 根据索引获取签文
+        function getFortuneByIndex(index) {
+            const fortunes = [
+                {
+                    title: "上上签",
+                    content: "宝剑锋从磨砺出，梅花香自苦寒来。坚持不懈，终有所成。",
+                    explanation: "此签意味着您目前可能正在经历一些挑战或困难，但只要坚持不懈，这些困难终将成为您成长的阶梯。好运即将到来，请保持积极的心态。"
+                },
+                {
+                    title: "上吉签",
+                    content: "春风得意马蹄疾，一日看尽长安花。前途光明，万事如意。",
+                    explanation: "此签预示着您将迎来一段好运，事业和生活都将顺利发展。机会就在眼前，请把握住它们。"
+                },
+                {
+                    title: "中吉签",
+                    content: "柳暗花明又一村，守得云开见月明。耐心等待，终见光明。",
+                    explanation: "此签表明您目前可能面临一些困惑或挑战，但很快就会柳暗花明。保持耐心和积极的态度，好运就在不远处。"
+                },
+                {
+                    title: "吉签",
+                    content: "一叶扁舟轻帆卷，暂泊湖边鸟自啼。平稳前行，安然自得。",
+                    explanation: "此签意味着您的生活将平稳发展，虽无大起大落，但也无忧无虑。享受当下的平静，积蓄力量迎接未来。"
+                },
+                {
+                    title: "小吉签",
+                    content: "微雨众卉新，一雷惊蛰始。小小变化中，孕育新生机。",
+                    explanation: "此签预示着小小的变化将为您带来新的机遇。保持敏锐的观察力，抓住这些细微的变化所带来的机会。"
+                },
+                {
+                    title: "末吉签",
+                    content: "山重水复疑无路，柳暗花明又一村。坚持前行，必有出路。",
+                    explanation: "此签表明您可能正在经历一些困难或挫折，但只要坚持下去，就会发现新的道路和机会。不要轻易放弃。"
+                },
+                {
+                    title: "中平签",
+                    content: "云淡风轻日正午，水流花开春正好。平稳前行，静待花开。",
+                    explanation: "此签意味着您的生活将保持平稳，没有大的波动。保持平常心，做好自己的事情，静待时机成熟。"
+                },
+                {
+                    title: "小凶签",
+                    content: "风雨交加终成空，空谷幽兰自幽居。莫妄自菲薄，莫妄自菲薄。",
+                    explanation: "此签表明您的生活将受到挑战和困难的影响。不要妄自菲薄，保持冷静和理智，相信自己的力量。"
+                },
+                {
+                    title: "凶签",
+                    content: "风雨交加终成空，空谷幽兰自幽居。莫妄自菲薄，莫妄自菲薄。",
+                    explanation: "此签表明您的生活将受到挑战和困难的影响。不要妄自菲薄，保持冷静和理智，相信自己的力量。" 
+                },
+                {
+                    title: "大凶签",
+                    content: "风雨交加终成空，空谷幽兰自幽居。莫妄自菲薄，莫妄自菲薄。",
+                    explanation: "此签表明您的生活将受到挑战和困难的影响。不要妄自菲薄，保持冷静和理智，相信自己的力量。"
+                },
+            ];
+            
+            // 根据索引返回签文，如果索引超出范围则随机返回一个
+            return fortunes[index % fortunes.length];
+        }
+        
+        // 初始化
+        createSticks();
+    </script>
+</body>
+</html>

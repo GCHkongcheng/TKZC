@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸运颜色 - 幸运占卜</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #673ab7, #9c27b0);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 90%;
+            margin: 2rem auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .color-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .name-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .generate-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .generate-btn:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .result-container {
+            margin-top: 2rem;
+            display: none;
+            animation: fadeIn 1s ease;
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #FFD700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .color-display {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 1.5rem auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.5s ease;
+            animation: pulse 2s infinite;
+        }
+        
+        .color-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .color-meaning {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        
+        .back-button {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 255, 255, 0.5); }
+            100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 幸运颜色 🎨</h1>
+        <p>发现今日专属于你的幸运颜色，为你带来好运与能量</p>
+        
+        <div class="color-container">
+            <p>输入你的名字，获取专属于你的今日幸运颜色</p>
+            <input type="text" class="name-input" id="name-input" placeholder="请输入你的名字">
+            <button class="generate-btn" id="generate-btn">获取幸运颜色</button>
+            
+            <div class="result-container" id="result-container">
+                <h2 class="result-title">你今日的幸运颜色是</h2>
+                <div class="color-display" id="color-display"></div>
+                <div class="color-name" id="color-name">翡翠绿</div>
+                <div class="color-meaning" id="color-meaning">
+                    这种颜色代表生机与活力，能带给你平静与希望。今天，这个颜色将为你带来好运，特别是在新的开始和成长方面。
+                </div>
+            </div>
+        </div>
+        
+        <button class="back-button" onclick="location.href='index.html'">返回主页</button>
+    </div>
+    
+    <footer>
+        <p>© 2025 幸运占卜 | 仅供娱乐，请勿过度沉迷</p>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generate-btn');
+            const nameInput = document.getElementById('name-input');
+            const resultContainer = document.getElementById('result-container');
+            const colorDisplay = document.getElementById('color-display');
+            const colorName = document.getElementById('color-name');
+            const colorMeaning = document.getElementById('color-meaning');
+            
+            // 颜色数据库
+            const colors = [
+                {
+                    name: "翡翠绿",
+                    hex: "#3CB371",
+                    meaning: "这种颜色代表生机与活力，能带给你平静与希望。今天，这个颜色将为你带来好运，特别是在新的开始和成长方面。"
+                },
+                {
+                    name: "宝石蓝",
+                    hex: "#4169E1",
+                    meaning: "宝石蓝象征着智慧与信任，能增强你的沟通能力。今天，这个颜色将帮助你在人际关系和表达自我方面获得好运。"
+                },
+                {
+                    name: "紫罗兰",
+                    hex: "#8A2BE2",
+                    meaning: "紫罗兰代表着高贵与神秘，能激发你的创造力。今天，这个颜色将在艺术创作和灵感迸发方面为你带来好运。"
+                },
+                {
+                    name: "珊瑚红",
+                    hex: "#FF7F50",
+                    meaning: "珊瑚红充满活力与热情，能提升你的自信心。今天，这个颜色将在社交活动和表现自我方面为你带来好运。"
+                },
+                {
+                    name: "金色",
+                    hex: "#FFD700",
+                    meaning: "金色象征着财富与成功，能增强你的决断力。今天，这个颜色将在财务决策和职业发展方面为你带来好运。"
+                },
+                {
+                    name: "天空蓝",
+                    hex: "#87CEEB",
+                    meaning: "天空蓝代表着宁静与和平，能帮助你保持冷静。今天，这个颜色将在解决问题和保持心态平和方面为你带来好运。"
+                },
+                {
+                    name: "玫瑰粉",
+                    hex: "#FF69B4",
+                    meaning: "玫瑰粉充满温柔与爱意，能增强你的亲和力。今天，这个颜色将在爱情和友谊方面为你带来好运。"
+                },
+                {
+                    name: "琥珀色",
+                    hex: "#FFBF00",
+                    meaning: "琥珀色象征着温暖与活力，能提升你的精力。今天，这个颜色将在体力活动和户外活动方面为你带来好运。"
+                },
+                {
+                    name: "深海蓝",
+                    hex: "#000080",
+                    meaning: "深海蓝代表着深度与稳定，能增强你的专注力。今天，这个颜色将在学习和深度思考方面为你带来好运。"
+                },
+                {
+                    name: "森林绿",
+                    hex: "#228B22",
+                    meaning: "森林绿象征着自然与平衡，能帮助你与自然连接。今天，这个颜色将在健康和身心平衡方面为你带来好运。"
+                },
+                {
+                    name: "石榴红",
+                    hex: "#DC143C",
+                    meaning: "石榴红充满激情与力量，能增强你的勇气。今天，这个颜色将在面对挑战和做出改变方面为你带来好运。"
+                },
+                {
+                    name: "薰衣草紫",
+                    hex: "#E6E6FA",
+                    meaning: "薰衣草紫代表着优雅与宁静，能帮助你放松心情。今天，这个颜色将在减轻压力和提高睡眠质量方面为你带来好运。"
+                },
+                {
+                    name: "土耳其蓝",
+                    hex: "#00CED1",
+                    meaning: "土耳其蓝代表着清新与活力，能激发你的创新思维。今天，这个颜色将在创意工作和解决问题方面为你带来好运。"
+                },
+                {
+                    name: "赤褐色",
+                    hex: "#A52A2A",
+                    meaning: "赤褐色象征着稳重与坚韧，能增强你的毅力。今天，这个颜色将在坚持目标和克服困难方面为你带来好运。"
+                },
+                {
+                    name: "橄榄绿",
+                    hex: "#808000",
+                    meaning: "橄榄绿代表着和平与自然，能帮助你找到内心的平静。今天，这个颜色将在调和关系和寻找平衡方面为你带来好运。"
+                },
+                {
+                    name: "柠檬黄",
+                    hex: "#FFF44F",
+                    meaning: "柠檬黄充满阳光与活力，能提升你的乐观情绪。今天，这个颜色将在积极思考和享受生活方面为你带来好运。"
+                },
+                {
+                    name: "酒红色",
+                    hex: "#8B0000",
+                    meaning: "酒红色象征着热情与深度，能增强你的魅力。今天，这个颜色将在社交场合和表达情感方面为你带来好运。"
+                },
+                {
+                    name: "孔雀蓝",
+                    hex: "#33A1C9",
+                    meaning: "孔雀蓝代表着自信与优雅，能帮助你展现最佳状态。今天，这个颜色将在自我表现和获得认可方面为你带来好运。"
+                },
+                {
+                    name: "杏仁色",
+                    hex: "#FFEBCD",
+                    meaning: "杏仁色象征着温和与包容，能增强你的亲和力。今天，这个颜色将在建立信任和促进合作方面为你带来好运。"
+                },
+                {
+                    name: "靛青色",
+                    hex: "#4B0082",
+                    meaning: "靛青色代表着直觉与洞察力，能帮助你看清事物本质。今天，这个颜色将在做出决策和理解他人方面为你带来好运。"
+                },
+                {
+                    name: "蜜桃色",
+                    hex: "#FFDAB9",
+                    meaning: "蜜桃色充满温暖与甜蜜，能提升你的幸福感。今天，这个颜色将在享受美好时光和感受爱意方面为你带来好运。"
+                },
+                {
+                    name: "青铜色",
+                    hex: "#CD7F32",
+                    meaning: "青铜色象征着坚固与历史感，能增强你的责任感。今天，这个颜色将在完成任务和尊重传统方面为你带来好运。"
+                },
+                {
+                    name: "薄荷绿",
+                    hex: "#98FB98",
+                    meaning: "薄荷绿代表着清新与舒适，能帮助你保持头脑清醒。今天，这个颜色将在思考问题和保持专注方面为你带来好运。"
+                },
+                {
+                    name: "柠檬绿",
+                    hex: "#32CD32",
+                    meaning: "柠檬绿代表着健康与活力，能帮助你保持活力。今天，这个颜色将在保持健康和保持精力方面为你带来好运。"
+                },  
+                {
+                    name: "柠檬黄",
+                    hex: "#FFF44F",
+                    meaning: "柠檬黄充满阳光与活力，能提升你的乐观情绪。今天，这个颜色将在积极思考和享受生活方面为你带来好运。" 
+                },
+                {
+                    name: "孔雀蓝",
+                    hex: "#33A1C9",
+                    meaning: "孔雀蓝代表着自信与优雅，能帮助你展现最佳状态。今天，这个颜色将在自我表现和获得认可方面为你带来好运。" 
+                },
+                {
+                    name: "杏仁色",
+                    hex: "#FFEBCD",
+                    meaning: "杏仁色象征着温和与包容，能增强你的亲和力。今天，这个颜色将在建立信任和促进合作方面为你带来好运。" 
+                },
+            ];
+            
+            // 生成幸运颜色按钮点击事件
+            generateBtn.addEventListener('click', function() {
+                const name = nameInput.value.trim();
+                
+                if (!name) {
+                    alert('请输入你的名字');
+                    return;
+                }
+                
+                // 基于名字和日期生成一个伪随机数
+                const today = new Date();
+                const dateString = `${today.getFullYear()}${today.getMonth()}${today.getDate()}`;
+                let seed = 0;
+                
+                for (let i = 0; i < name.length; i++) {
+                    seed += name.charCodeAt(i);
+                }
+                
+                seed += parseInt(dateString);
+                
+                // 选择今日的幸运颜色
+                const colorIndex = seed % colors.length;
+                const luckyColor = colors[colorIndex];
+                
+                // 显示结果
+                colorDisplay.style.backgroundColor = luckyColor.hex;
+                colorName.textContent = luckyColor.name;
+                colorMeaning.textContent = luckyColor.meaning;
+                
+                // 显示结果容器
+                resultContainer.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

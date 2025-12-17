@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星座运势 - 幸运占卜</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 90%;
+            margin: 2rem auto;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .horoscope-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .zodiac-selection {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .zodiac-sign {
+            width: 100px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .zodiac-sign:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .zodiac-sign.selected {
+            background: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            transform: translateY(-5px) scale(1.05);
+        }
+        
+        .zodiac-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .zodiac-name {
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .zodiac-date {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-top: 0.3rem;
+        }
+        
+        .time-period {
+            display: flex;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+        
+        .period-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            margin: 0 0.5rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .period-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .period-btn.active {
+            background: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            animation: fadeIn 1s ease;
+        }
+        
+        .horoscope-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #FFD700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .horoscope-content {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            line-height: 1.6;
+            text-align: left;
+        }
+        
+        .rating-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 1.5rem 0;
+        }
+        
+        .rating-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0.5rem;
+        }
+        
+        .rating-label {
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .rating-stars {
+            color: #FFD700;
+            font-size: 1.2rem;
+        }
+        
+        .lucky-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 1.5rem 0;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+        }
+        
+        .lucky-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0.5rem 1rem;
+        }
+        
+        .lucky-label {
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            opacity: 0.9;
+        }
+        
+        .lucky-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #FFD700;
+        }
+        
+        .back-button {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .zodiac-selection {
+                gap: 0.5rem;
+            }
+            
+            .zodiac-sign {
+                width: 80px;
+                height: 100px;
+            }
+            
+            .zodiac-icon {
+                font-size: 2rem;
+            }
+            
+            .zodiac-name {
+                font-size: 0.8rem;
+            }
+            
+            .zodiac-date {
+                font-size: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ 星座运势 ✨</h1>
+        <p>探索星座的奥秘，了解你的今日运势</p>
+        
+        <div class="horoscope-container">
+            <h2>请选择您的星座</h2>
+            
+            <div class="zodiac-selection" id="zodiac-selection">
+                <!-- 星座会在JavaScript中动态生成 -->
+            </div>
+            
+            <div class="time-period" id="time-period" style="display: none;">
+                <button class="period-btn active" data-period="today">今日运势</button>
+                <button class="period-btn" data-period="week">本周运势</button>
+                <button class="period-btn" data-period="month">本月运势</button>
+            </div>
+            
+            <div class="result-section" id="result">
+                <h2 class="horoscope-title" id="horoscope-title">白羊座今日运势</h2>
+                
+                <div class="rating-section">
+                    <div class="rating-item">
+                        <div class="rating-label">综合指数</div>
+                        <div class="rating-stars" id="overall-rating">★★★★☆</div>
+                    </div>
+                    <div class="rating-item">
+                        <div class="rating-label">爱情指数</div>
+                        <div class="rating-stars" id="love-rating">★★★☆☆</div>
+                    </div>
+                    <div class="rating-item">
+                        <div class="rating-label">事业指数</div>
+                        <div class="rating-stars" id="career-rating">★★★★★</div>
+                    </div>
+                    <div class="rating-item">
+                        <div class="rating-label">财富指数</div>
+                        <div class="rating-stars" id="wealth-rating">★★★★☆</div>
+                    </div>
+                    <div class="rating-item">
+                        <div class="rating-label">健康指数</div>
+                        <div class="rating-stars" id="health-rating">★★★★☆</div>
+                    </div>
+                </div>
+                
+                <div class="horoscope-content" id="horoscope-content">
+                    <!-- 运势内容会在JavaScript中动态生成 -->
+                </div>
+                
+                <div class="lucky-section">
+                    <div class="lucky-item">
+                        <div class="lucky-label">幸运色</div>
+                        <div class="lucky-value" id="lucky-color">红色</div>
+                    </div>
+                    <div class="lucky-item">
+                        <div class="lucky-label">幸运数字</div>
+                        <div class="lucky-value" id="lucky-number">7</div>
+                    </div>
+                    <div class="lucky-item">
+                        <div class="lucky-label">幸运方位</div>
+                        <div class="lucky-value" id="lucky-direction">东北</div>
+                    </div>
+                    <div class="lucky-item">
+                        <div class="lucky-label">契合星座</div>
+                        <div class="lucky-value" id="compatible-sign">狮子座</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="back-button" onclick="location.href='index.html'">返回主页</button>
+    </div>
+    
+    <footer>
+        <p>© 2025 幸运占卜 | 仅供娱乐，请勿过度沉迷</p>
+    </footer>
+    
+    <script>
+        // 星座数据
+        const zodiacSigns = [
+            { name: "白羊座", icon: "♈", date: "3.21-4.19" },
+            { name: "金牛座", icon: "♉", date: "4.20-5.20" },
+            { name: "双子座", icon: "♊", date: "5.21-6.21" },
+            { name: "巨蟹座", icon: "♋", date: "6.22-7.22" },
+            { name: "狮子座", icon: "♌", date: "7.23-8.22" },
+            { name: "处女座", icon: "♍", date: "8.23-9.22" },
+            { name: "天秤座", icon: "♎", date: "9.23-10.23" },
+            { name: "天蝎座", icon: "♏", date: "10.24-11.22" },
+            { name: "射手座", icon: "♐", date: "11.23-12.21" },
+            { name: "摩羯座", icon: "♑", date: "12.22-1.19" },
+            { name: "水瓶座", icon: "♒", date: "1.20-2.18" },
+            { name: "双鱼座", icon: "♓", date: "2.19-3.20" }
+        ];
+        
+        // 幸运色列表
+        const luckyColors = ["红色", "蓝色", "绿色", "黄色", "紫色", "橙色", "粉色", "白色", "黑色", "金色", "银色", "棕色"];
+        
+        // 幸运方位列表
+        const luckyDirections = ["东", "南", "西", "北", "东南", "东北", "西南", "西北"];
+        
+        let selectedZodiac = null;
+        let selectedPeriod = "today";
+        
+        // 初始化星座选择
+        function initZodiacSelection() {
+            const zodiacSelection = document.getElementById('zodiac-selection');
+            
+            zodiacSigns.forEach(sign => {
+                const zodiacSign = document.createElement('div');
+                zodiacSign.className = 'zodiac-sign';
+                zodiacSign.dataset.name = sign.name;
+                
+                const zodiacIcon = document.createElement('div');
+                zodiacIcon.className = 'zodiac-icon';
+                zodiacIcon.textContent = sign.icon;
+                
+                const zodiacName = document.createElement('div');
+                zodiacName.className = 'zodiac-name';
+                zodiacName.textContent = sign.name;
+                
+                const zodiacDate = document.createElement('div');
+                zodiacDate.className = 'zodiac-date';
+                zodiacDate.textContent = sign.date;
+                
+                zodiacSign.appendChild(zodiacIcon);
+                zodiacSign.appendChild(zodiacName);
+                zodiacSign.appendChild(zodiacDate);
+                
+                zodiacSign.addEventListener('click', function() {
+                    // 移除之前的选中状态
+                    document.querySelectorAll('.zodiac-sign').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    
+                    // 添加选中状态
+                    this.classList.add('selected');
+                    
+                    // 保存选中的星座
+                    selectedZodiac = sign.name;
+                    
+                    // 显示时间周期选择
+                    document.getElementById('time-period').style.display = 'flex';
+                    
+                    // 生成并显示运势
+                    generateHoroscope();
+                });
+                
+                zodiacSelection.appendChild(zodiacSign);
+            });
+        }
+        
+        // 初始化时间周期选择
+        function initTimePeriod() {
+            const periodButtons = document.querySelectorAll('.period-btn');
+            
+            periodButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除之前的选中状态
+                    periodButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // 添加选中状态
+                    this.classList.add('active');
+                    
+                    // 保存选中的时间周期
+                    selectedPeriod = this.dataset.period;
+                    
+                    // 重新生成运势
+                    generateHoroscope();
+                });
+            });
+        }
+        
+        // 生成星座运势
+        function generateHoroscope() {
+            if (!selectedZodiac) return;
+            
+            // 设置标题
+            const periodText = {
+                "today": "今日",
+                "week": "本周",
+                "month": "本月"
+            };
+            document.getElementById('horoscope-title').textContent = `${selectedZodiac}${periodText[selectedPeriod]}运势`;
+            
+            // 生成随机评分
+            const ratings = {
+                overall: getRandomRating(),
+                love: getRandomRating(),
+                career: getRandomRating(),
+                wealth: getRandomRating(),
+                health: getRandomRating()
+            };
+            
+            // 设置评分星星
+            document.getElementById('overall-rating').textContent = getRatingStars(ratings.overall);
+            document.getElementById('love-rating').textContent = getRatingStars(ratings.love);
+            document.getElementById('career-rating').textContent = getRatingStars(ratings.career);
+            document.getElementById('wealth-rating').textContent = getRatingStars(ratings.wealth);
+            document.getElementById('health-rating').textContent = getRatingStars(ratings.health);
+            
+            // 生成运势内容
+            let content = '';
+            
+            // 根据不同的时间周期生成不同的内容
+            if (selectedPeriod === 'today') {
+                content = generateTodayHoroscope(selectedZodiac, ratings);
+            } else if (selectedPeriod === 'week') {
+                content = generateWeekHoroscope(selectedZodiac, ratings);
+            } else if (selectedPeriod === 'month') {
+                content = generateMonthHoroscope(selectedZodiac, ratings);
+            }
+            
+            document.getElementById('horoscope-content').innerHTML = content;
+            
+            // 生成幸运信息
+            document.getElementById('lucky-color').textContent = luckyColors[Math.floor(Math.random() * luckyColors.length)];
+            document.getElementById('lucky-number').textContent = Math.floor(Math.random() * 100);
+            document.getElementById('lucky-direction').textContent = luckyDirections[Math.floor(Math.random() * luckyDirections.length)];
+            
+            // 生成契合星座（不能是自己）
+            let compatibleSignIndex;
+            do {
+                compatibleSignIndex = Math.floor(Math.random() * zodiacSigns.length);
+            } while (zodiacSigns[compatibleSignIndex].name === selectedZodiac);
+            
+            document.getElementById('compatible-sign').textContent = zodiacSigns[compatibleSignIndex].name;
+            
+            // 显示结果
+            document.getElementById('result').style.display = 'block';
+        }
+        
+        // 获取随机评分（1-5）
+        function getRandomRating() {
+            return Math.floor(Math.random() * 5) + 1;
+        }
+        
+        // 获取评分星星
+        function getRatingStars(rating) {
+            return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        }
+        
+        // 生成今日运势
+        function generateTodayHoroscope(zodiac, ratings) {
+            const overallDesc = getOverallDescription(ratings.overall);
+            const loveDesc = getLoveDescription(ratings.love);
+            const careerDesc = getCareerDescription(ratings.career);
+            const wealthDesc = getWealthDescription(ratings.wealth);
+            const healthDesc = getHealthDescription(ratings.health);
+            
+            return `
+                <p><strong>今日综合运势：</strong>${overallDesc}</p>
+                <p><strong>爱情运势：</strong>${loveDesc}</p>
+                <p><strong>事业运势：</strong>${careerDesc}</p>
+                <p><strong>财富运势：</strong>${wealthDesc}</p>
+                <p><strong>健康运势：</strong>${healthDesc}</p>
+                <p><strong>今日建议：</strong>${getTodayAdvice(zodiac)}</p>
+            `;
+        }
+        
+        // 生成本周运势
+        function generateWeekHoroscope(zodiac, ratings) {
+            const overallDesc = getOverallDescription(ratings.overall, true);
+            const loveDesc = getLoveDescription(ratings.love, true);
+            const careerDesc = getCareerDescription(ratings.career, true);
+            const wealthDesc = getWealthDescription(ratings.wealth, true);
+            const healthDesc = getHealthDescription(ratings.health, true);
+            
+            return `
+                <p><strong>本周综合运势：</strong>${overallDesc}</p>
+                <p><strong>爱情运势：</strong>${loveDesc}</p>
+                <p><strong>事业运势：</strong>${careerDesc}</p>
+                <p><strong>财富运势：</strong>${wealthDesc}</p>
+                <p><strong>健康运势：</strong>${healthDesc}</p>
+                <p><strong>本周建议：</strong>${getWeekAdvice(zodiac)}</p>
+            `;
+        }
+        
+        // 生成本月运势
+        function generateMonthHoroscope(zodiac, ratings) {
+            const overallDesc = getOverallDescription(ratings.overall, true, true);
+            const loveDesc = getLoveDescription(ratings.love, true, true);
+            const careerDesc = getCareerDescription(ratings.career, true, true);
+            const wealthDesc = getWealthDescription(ratings.wealth, true, true);
+            const healthDesc = getHealthDescription(ratings.health, true, true);
+            
+            return `
+                <p><strong>本月综合运势：</strong>${overallDesc}</p>
+                <p><strong>爱情运势：</strong>${loveDesc}</p>
+                <p><strong>事业运势：</strong>${careerDesc}</p>
+                <p><strong>财富运势：</strong>${wealthDesc}</p>
+                <p><strong>健康运势：</strong>${healthDesc}</p>
+                <p><strong>本月建议：</strong>${getMonthAdvice(zodiac)}</p>
+            `;
+        }
+        
+        // 获取综合运势描述
+        function getOverallDescription(rating, isLong = false, isVeryLong = false) {
+            const descriptions = [
+                ["今天运势较低，可能会遇到一些小挫折，建议保持冷静。", "本周运势起伏较大，前半周可能面临挑战，后半周会有所好转。", "本月整体运势偏低，可能会遇到一些困难和挑战，需要保持耐心和毅力。"],
+                ["今天运势一般，平淡中可能有小惊喜，保持平常心。", "本周运势平稳，没有太大波动，适合稳步推进已有计划。", "本月运势中规中矩，没有太大起伏，适合稳扎稳打，循序渐进。"],
+                ["今天运势不错，工作生活都比较顺利，心情愉快。", "本周运势良好，各方面都有不错的发展，可以适当扩展计划范围。", "本月运势向好，多数时间都会感到顺利和满足，是实现目标的好时机。"],
+                ["今天运势很好，可能会有意外收获，建议把握机会。", "本周运势优秀，各方面都有明显进展，是推进重要事项的好时机。", "本月运势优异，各方面都会有显著进展，是实现重要突破的黄金时期。"],
+                ["今天运势极佳，诸事顺利，是难得的好日子，可大胆行动。", "本周运势极佳，可能会有重大突破，建议积极把握各种机会。", "本月运势极佳，是事业和个人发展的黄金时期，应该充分把握这难得的机遇。"]
+            ];
+            
+            if (isVeryLong) return descriptions[rating-1][2];
+            if (isLong) return descriptions[rating-1][1];
+            return descriptions[rating-1][0];
+        }
+        
+        // 获取爱情运势描述
+        function getLoveDescription(rating, isLong = false, isVeryLong = false) {
+            const descriptions = [
+                ["今天在感情方面可能会有些不顺，沟通时需要更加耐心。", "本周感情运势较低，可能会有一些误解或摩擦，需要更多的包容和理解。", "本月爱情运势不佳，可能会遇到一些挑战和考验，需要双方共同努力维护关系。"],
+                ["今天感情运势一般，保持平常心，避免过度敏感。", "本周感情生活平稳，没有太大波动，适合稳固现有关系。", "本月爱情运势平平，没有太多惊喜，但也相对稳定，适合深化感情。"],
+                ["今天感情运势不错，与伴侣沟通顺畅，单身者可能有新邂逅。", "本周感情运势良好，关系融洽，单身者有机会遇到心仪对象。", "本月爱情运势向好，关系将更加稳固，单身者有较多机会遇到合适的对象。"],
+                ["今天感情运势很好，可能会收到惊喜，感受到爱的温暖。", "本周感情运势优秀，可能会有美好的回忆或重要的进展。", "本月爱情运势优异，可能会有重要的感情突破或美好的浪漫体验。"],
+                ["今天感情运势极佳，是表白或求婚的好日子，爱情甜蜜幸福。", "本周感情运势极佳，可能会迎来重要的感情里程碑，充满幸福和甜蜜。", "本月爱情运势极佳，是确立或深化感情关系的最佳时期，可能会有重要的感情决定。"]
+            ];
+            
+            if (isVeryLong) return descriptions[rating-1][2];
+            if (isLong) return descriptions[rating-1][1];
+            return descriptions[rating-1][0];
+        }
+        
+        // 获取事业运势描述
+        function getCareerDescription(rating, isLong = false, isVeryLong = false) {
+            const descriptions = [
+                ["今天工作可能会遇到一些阻碍，建议保持耐心，不要急躁。", "本周工作压力较大，可能会遇到一些挑战，需要调整心态和策略。", "本月事业运势较低，可能会面临一些困难和挑战，需要更加努力和坚持。"],
+                ["今天工作运势一般，按部就班完成任务即可，避免冒险。", "本周工作状态平稳，没有太大波动，适合稳步推进已有项目。", "本月事业发展平平，没有太大突破，适合巩固已有成果，积累经验。"],
+                ["今天工作运势不错，效率较高，可能会得到领导的认可。", "本周工作运势良好，进展顺利，可能会有新的机会或项目。", "本月事业运势向好，工作进展顺利，可能会有新的机会或提升。"],
+                ["今天工作运势很好，思路清晰，创意丰富，是推进重要项目的好时机。", "本周工作运势优秀，可能会有重要突破或成果，得到认可和赞赏。", "本月事业运势优异，可能会有重要的成就或晋升机会，是职业发展的重要时期。"],
+                ["今天工作运势极佳，可能会有重大突破或意外惊喜，把握机会大展身手。", "本周工作运势极佳，可能会有重大成就或晋升机会，是职业发展的关键时期。", "本月事业运势极佳，是职业发展的黄金时期，可能会有重大突破、晋升或转型机会。"]
+            ];
+            
+            if (isVeryLong) return descriptions[rating-1][2];
+            if (isLong) return descriptions[rating-1][1];
+            return descriptions[rating-1][0];
+        }
+        
+        // 获取财富运势描述
+        function getWealthDescription(rating, isLong = false, isVeryLong = false) {
+            const descriptions = [
+                ["今天财运较低，建议控制支出，避免不必要的消费。", "本周财务状况不佳，需要谨慎理财，避免冲动消费和投资。", "本月财富运势较低，可能会有一些意外支出，需要严格控制预算，避免风险投资。"],
+                ["今天财运一般，收支平衡，不宜大额消费或投资。", "本周财务状况平稳，没有太大波动，适合稳健理财。", "本月财富状况平平，没有太大起伏，适合稳健理财和储蓄。"],
+                ["今天财运不错，可能有小额收入，适合适度投资。", "本周财务运势良好，收入稳定，可能有小额意外收获。", "本月财富运势向好，收入稳定增长，可能有一些额外收益。"],
+                ["今天财运很好，可能有意外收获，投资可能带来回报。", "本周财务运势优秀，可能有额外收入或投资回报，适合适度扩大投资。", "本月财富运势优异，可能会有显著的收入增长或投资回报，是财务发展的重要时期。"],
+                ["今天财运极佳，可能有意外之财，投资可能带来丰厚回报。", "本周财务运势极佳，可能有大额收入或投资机会，是财富增长的黄金时期。", "本月财富运势极佳，可能会有重大的财务突破或机遇，是积累财富的绝佳时机。"]
+            ];
+            
+            if (isVeryLong) return descriptions[rating-1][2];
+            if (isLong) return descriptions[rating-1][1];
+            return descriptions[rating-1][0];
+        }
+        
+        // 获取健康运势描述
+        function getHealthDescription(rating, isLong = false, isVeryLong = false) {
+            const descriptions = [
+                ["今天身体状况可能不佳，注意休息，避免过度劳累。", "本周健康状况需要关注，可能会感到疲惫或有小病痛，注意休息和保健。", "本月健康状况需要特别关注，可能会有一些健康问题，建议及时调整生活习惯，必要时就医。"],
+                ["今天健康状况一般，注意适度运动，保持良好作息。", "本周健康状况平稳，保持规律的生活习惯和适度运动。", "本月健康状况平平，没有太大问题，但也需要保持良好的生活习惯。"],
+                ["今天健康状况不错，精力充沛，适合进行体育锻炼。", "本周健康状况良好，精力充沛，是增强体质的好时机。", "本月健康状况良好，身体机能运转正常，是改善体质的好时期。"],
+                ["今天健康状况很好，身心愉悦，是进行户外活动的好时机。", "本周健康状况优秀，身心状态佳，适合尝试新的运动或健康计划。", "本月健康状况优异，身心和谐，是建立健康生活方式的理想时期。"],
+                ["今天健康状况极佳，精力充沛，身心愉悦，是挑战极限的好时机。", "本周健康状况极佳，充满活力，是突破自我、挑战极限的最佳时期。", "本月健康状况极佳，身心状态达到巅峰，是实现健康目标和突破的黄金时期。"]
+            ];
+            
+            if (isVeryLong) return descriptions[rating-1][2];
+            if (isLong) return descriptions[rating-1][1];
+            return descriptions[rating-1][0];
+        }
+        
+        // 获取今日建议
+        function getTodayAdvice(zodiac) {
+            const advices = [
+                "今天适合与朋友聚会，分享快乐时光。",
+                "工作中可能遇到挑战，保持冷静思考，寻找解决方案。",
+                "今天是反思和规划的好时机，花些时间思考未来目标。",
+                "尝试一些新事物，可能会有意外的收获和乐趣。",
+                "今天适合处理积压的事务，清理环境，让生活更有条理。",
+                "多关注身边的人，一个小小的关怀可能带来温暖的回应。",
+                "今天适合学习新知识，拓展视野，提升自我。",
+                "注意休息和放松，保持身心平衡对健康至关重要。",
+                "今天可能会收到好消息，保持积极乐观的心态。",
+                "适当的运动可以提升今天的精力和心情。",
+                "今天适合与家人共度时光，增进感情。",
+                "工作中注意细节，可能会发现之前忽略的重要信息。"
+            ];
+            
+            // 根据星座和日期生成一个伪随机数，确保同一天同一星座看到的建议相同
+            const today = new Date();
+            const dateString = today.getFullYear() + "" + (today.getMonth() + 1) + "" + today.getDate();
+            const seed = parseInt(dateString + zodiacSigns.findIndex(sign => sign.name === zodiac));
+            const randomIndex = seed % advices.length;
+            
+            return advices[randomIndex];
+        }
+        
+        // 获取本周建议
+        function getWeekAdvice(zodiac) {
+            const advices = [
+                "本周适合制定长期计划，思考未来发展方向。",
+                "工作中可能需要团队合作，保持良好沟通，共同解决问题。",
+                "本周适合学习新技能，参加培训或工作坊，提升自我价值。",
+                "注意平衡工作和生活，适当放松和休息对提高效率很重要。",
+                "本周可能会遇到一些挑战，保持积极心态，寻找创新解决方案。",
+                "关注人际关系，可能需要修复或加强某些重要的联系。",
+                "财务方面需要谨慎规划，避免冲动消费，考虑长期投资。",
+                "健康应该是本周的重点，建立良好的生活习惯，适当运动。",
+                "本周适合整理和反思，清理不必要的物品和思想负担。",
+                "可能会有新的机会出现，保持开放的心态，勇于尝试。",
+                "家庭关系需要更多关注，花时间与亲人相处，解决潜在问题。",
+                "本周适合拓展社交圈，参加活动，结识新朋友。"
+            ];
+            
+            // 根据星座和周数生成一个伪随机数
+            const today = new Date();
+            const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+            const pastDaysOfYear = (today - firstDayOfYear) / 86400000;
+            const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+            const seed = parseInt(today.getFullYear() + "" + weekNumber + zodiacSigns.findIndex(sign => sign.name === zodiac));
+            const randomIndex = seed % advices.length;
+            
+            return advices[randomIndex];
+        }
+        
+        // 获取本月建议
+        function getMonthAdvice(zodiac) {
+            const advices = [
+                "本月适合制定年度计划，思考长期目标和实现路径。",
+                "职业发展可能面临重要转折，保持开放心态，把握机会。",
+                "本月适合深入学习和研究，提升专业技能和知识储备。",
+                "健康应该是本月的首要关注点，建立科学的生活方式和运动习惯。",
+                "人际关系网络可能需要扩展和深化，参与社交活动，建立有价值的联系。",
+                "财务规划需要全面审视，考虑长期投资和资产配置。",
+                "家庭关系可能需要更多投入，解决长期存在的问题，增进亲情。",
+                "本月适合自我反思和成长，可能需要面对和解决内心的困惑。",
+                "创新思维将带来突破，尝试新的方法和视角看待问题。",
+                "工作与生活的平衡需要重新调整，找到可持续的节奏。",
+                "本月可能有重要的决定需要做出，充分收集信息，理性分析。",
+                "精神成长是本月的主题，可以尝试冥想、阅读或其他提升内在的活动。"
+            ];
+            
+            // 根据星座和月份生成一个伪随机数
+            const today = new Date();
+            const seed = parseInt(today.getFullYear() + "" + (today.getMonth() + 1) + zodiacSigns.findIndex(sign => sign.name === zodiac));
+            const randomIndex = seed % advices.length;
+            
+            return advices[randomIndex];
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            initZodiacSelection();
+            initTimePeriod();
+        });
+    </script>
+</body>
+</html>,

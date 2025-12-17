@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帮你决策 - 幸运占卜</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #3f51b5, #7e57c2);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 90%;
+            margin: 2rem auto;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .decision-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .options-section {
+            margin-bottom: 2rem;
+        }
+        
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .option-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .option-input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            margin-right: 0.5rem;
+        }
+        
+        .remove-option {
+            background: rgba(255, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .remove-option:hover {
+            background: rgba(255, 0, 0, 0.8);
+        }
+        
+        .add-option {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .add-option:hover {
+            background: #388e3c;
+        }
+        
+        .wheel-section {
+            display: none;
+            margin-top: 2rem;
+        }
+        
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+        }
+        
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            transform: rotate(0deg);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .wheel-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ff9800;
+            z-index: 10;
+        }
+        
+        .wheel-segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom left;
+            clip-path: polygon(0 0, 100% 0, 0 100%);
+            left: 50%;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+        
+        .spin-button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .spin-button:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .spin-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            animation: fadeIn 1s ease;
+        }
+        
+        .result-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #FFD700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .result-content {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            font-size: 1.5rem;
+        }
+        
+        .start-button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .start-button:hover {
+            background: #388e3c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .back-button {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .wheel-container {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .wheel-segment {
+                font-size: 0.8rem;
+                padding-right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 帮你决策 🎯</h1>
+        <p>无法做出选择？让命运之轮为你指明方向</p>
+        
+        <div class="decision-container">
+            <div class="options-section" id="options-section">
+                <h2>输入你的选项</h2>
+                <p>添加至少两个选项，然后点击"开始决策"按钮</p>
+                
+                <div class="options-list" id="options-list">
+                    <div class="option-item">
+                        <input type="text" class="option-input" placeholder="选项1" value="吃中餐">
+                        <button class="remove-option">×</button>
+                    </div>
+                    <div class="option-item">
+                        <input type="text" class="option-input" placeholder="选项2" value="吃西餐">
+                        <button class="remove-option">×</button>
+                    </div>
+                </div>
+                
+                <button class="add-option" id="add-option-btn">添加选项</button>
+                <button class="start-button" id="start-btn">开始决策</button>
+            </div>
+            
+            <div class="wheel-section" id="wheel-section">
+                <h2>转动命运之轮</h2>
+                <p>点击"转动"按钮，让命运为你做出选择</p>
+                
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <div class="wheel" id="wheel">
+                        <!-- 转盘分段会在JavaScript中动态生成 -->
+                    </div>
+                </div>
+                
+                <button class="spin-button" id="spin-btn">转动</button>
+                
+                <div class="result-section" id="result">
+                    <h2 class="result-title">决策结果</h2>
+                    <div class="result-content" id="result-content">
+                        <!-- 结果会在JavaScript中动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="back-button" onclick="location.href='index.html'">返回主页</button>
+    </div>
+    
+    <footer>
+        <p>© 2025 幸运占卜 | 仅供娱乐，请勿过度沉迷</p>
+    </footer>
+    
+    <script>
+        // 全局变量
+        let options = ['吃中餐', '吃西餐'];
+        let isSpinning = false;
+        let selectedOption = null;
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加选项按钮点击事件
+            document.getElementById('add-option-btn').addEventListener('click', addOption);
+            
+            // 开始决策按钮点击事件
+            document.getElementById('start-btn').addEventListener('click', startDecision);
+            
+            // 转动按钮点击事件
+            document.getElementById('spin-btn').addEventListener('click', spinWheel);
+            
+            // 初始化删除按钮事件
+            initRemoveButtons();
+        });
+        
+        // 初始化删除按钮事件
+        function initRemoveButtons() {
+            document.querySelectorAll('.remove-option').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (document.querySelectorAll('.option-item').length > 2) {
+                        this.parentElement.remove();
+                        updateOptionsArray();
+                    } else {
+                        alert('至少需要两个选项');
+                    }
+                });
+            });
+        }
+        
+        // 添加选项
+        function addOption() {
+            const optionsList = document.getElementById('options-list');
+            const optionCount = optionsList.children.length + 1;
+            
+            const optionItem = document.createElement('div');
+            optionItem.className = 'option-item';
+            
+            const optionInput = document.createElement('input');
+            optionInput.type = 'text';
+            optionInput.className = 'option-input';
+            optionInput.placeholder = `选项${optionCount}`;
+            
+            const removeButton = document.createElement('button');
+            removeButton.className = 'remove-option';
+            removeButton.textContent = '×';
+            removeButton.addEventListener('click', function() {
+                if (document.querySelectorAll('.option-item').length > 2) {
+                    this.parentElement.remove();
+                    updateOptionsArray();
+                } else {
+                    alert('至少需要两个选项');
+                }
+            });
+            
+            optionItem.appendChild(optionInput);
+            optionItem.appendChild(removeButton);
+            optionsList.appendChild(optionItem);
+            
+            // 初始化新添加的删除按钮事件
+            initRemoveButtons();
+            
+            // 聚焦到新添加的输入框
+            optionInput.focus();
+        }
+        
+        // 更新选项数组
+        function updateOptionsArray() {
+            options = [];
+            document.querySelectorAll('.option-input').forEach(input => {
+                options.push(input.value.trim() || input.placeholder);
+            });
+        }
+        
+        // 开始决策
+        function startDecision() {
+            // 更新选项数组
+            updateOptionsArray();
+            
+            // 检查是否有有效选项
+            const validOptions = options.filter(option => option.trim() !== '');
+            if (validOptions.length < 2) {
+                alert('请至少输入两个有效选项');
+                return;
+            }
+            
+            // 隐藏选项部分，显示转盘部分
+            document.getElementById('options-section').style.display = 'none';
+            document.getElementById('wheel-section').style.display = 'block';
+            
+            // 创建转盘
+            createWheel(validOptions);
+        }
+        
+                // 创建转盘 - 完全重写转盘创建逻辑
+        function createWheel(items) {
+            const wheel = document.getElementById('wheel');
+            wheel.innerHTML = '';
+            
+            const colors = [
+                '#e53935', '#d81b60', '#8e24aa', '#5e35b1', '#3949ab',
+                '#1e88e5', '#039be5', '#00acc1', '#00897b', '#43a047',
+                '#7cb342', '#c0ca33', '#fdd835', '#ffb300', '#fb8c00'
+            ];
+            
+            // 创建一个SVG元素来绘制转盘
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", "100%");
+            svg.setAttribute("height", "100%");
+            svg.setAttribute("viewBox", "0 0 100 100");
+            
+            // 计算每个扇形的角度
+            const segmentAngle = 360 / items.length;
+            const centerX = 50;
+            const centerY = 50;
+            const radius = 50;
+            
+            // 创建扇形
+            for (let i = 0; i < items.length; i++) {
+                const startAngle = i * segmentAngle;
+                const endAngle = (i + 1) * segmentAngle;
+                
+                // 计算扇形的路径
+                const startRad = (startAngle - 90) * Math.PI / 180;
+                const endRad = (endAngle - 90) * Math.PI / 180;
+                
+                const x1 = centerX + radius * Math.cos(startRad);
+                const y1 = centerY + radius * Math.sin(startRad);
+                const x2 = centerX + radius * Math.cos(endRad);
+                const y2 = centerY + radius * Math.sin(endRad);
+                
+                // 创建扇形路径
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+                
+                const d = [
+                    `M ${centerX},${centerY}`,
+                    `L ${x1},${y1}`,
+                    `A ${radius},${radius} 0 ${largeArcFlag} 1 ${x2},${y2}`,
+                    "Z"
+                ].join(" ");
+                
+                path.setAttribute("d", d);
+                path.setAttribute("fill", colors[i % colors.length]);
+                path.setAttribute("stroke", "#fff");
+                path.setAttribute("stroke-width", "0.2");
+                
+                svg.appendChild(path);
+            }
+            
+            // 创建中心点
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("cx", centerX);
+            circle.setAttribute("cy", centerY);
+            circle.setAttribute("r", "3");
+            circle.setAttribute("fill", "white");
+            svg.appendChild(circle);
+            
+            wheel.appendChild(svg);
+            
+            // 重置转盘旋转
+            wheel.style.transform = 'rotate(0deg)';
+            
+            // 创建颜色图例
+            createColorLegend(items, colors);
+        }
+        
+        // 创建颜色图例
+        function createColorLegend(items, colors) {
+            // 先检查是否已存在图例，如果存在则移除
+            const existingLegend = document.getElementById('color-legend');
+            if (existingLegend) {
+                existingLegend.remove();
+            }
+            
+            // 创建图例容器
+            const legend = document.createElement('div');
+            legend.id = 'color-legend';
+            legend.style.marginTop = '2rem';
+            legend.style.display = 'flex';
+            legend.style.flexDirection = 'column';
+            legend.style.alignItems = 'center';
+            legend.style.gap = '0.5rem';
+            legend.style.maxWidth = '300px';
+            legend.style.margin = '2rem auto';
+            
+            // 创建图例标题
+            const legendTitle = document.createElement('h3');
+            legendTitle.textContent = '选项对照表';
+            legendTitle.style.margin = '0 0 0.5rem 0';
+            legend.appendChild(legendTitle);
+            
+            // 创建每个选项的图例项
+            items.forEach((item, index) => {
+                const legendItem = document.createElement('div');
+                legendItem.style.display = 'flex';
+                legendItem.style.alignItems = 'center';
+                legendItem.style.width = '100%';
+                legendItem.style.padding = '0.5rem';
+                legendItem.style.borderRadius = '5px';
+                legendItem.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                
+                const colorBox = document.createElement('div');
+                colorBox.style.width = '20px';
+                colorBox.style.height = '20px';
+                colorBox.style.backgroundColor = colors[index % colors.length];
+                colorBox.style.marginRight = '1rem';
+                colorBox.style.borderRadius = '3px';
+                
+                const itemText = document.createElement('div');
+                itemText.textContent = item;
+                itemText.style.flex = '1';
+                itemText.style.overflow = 'hidden';
+                itemText.style.textOverflow = 'ellipsis';
+                itemText.style.whiteSpace = 'nowrap';
+                
+                legendItem.appendChild(colorBox);
+                legendItem.appendChild(itemText);
+                legend.appendChild(legendItem);
+            });
+            
+            // 将图例添加到转盘部分
+            document.getElementById('wheel-section').appendChild(legend);
+        }
+        
+                       // 转动转盘
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            document.getElementById('spin-btn').disabled = true;
+            document.getElementById('result').style.display = 'none';
+            
+            // 更新选项数组
+            updateOptionsArray();
+            
+            // 重置转盘位置，确保每次旋转都从0度开始
+            const wheel = document.getElementById('wheel');
+            wheel.style.transition = 'none';
+            wheel.style.transform = 'rotate(0deg)';
+            
+            // 强制重绘以确保重置生效
+            wheel.offsetHeight;
+            
+            // 恢复转盘动画效果
+            wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+            
+            // 生成随机旋转角度（多转几圈再停下）
+            const spinAngle = 3600 + Math.random() * 360;
+            
+            // 设置转盘旋转
+            wheel.style.transform = `rotate(${spinAngle}deg)`;
+            
+            // 计算结果
+            setTimeout(() => {
+                const finalAngle = spinAngle % 360;
+                const segmentAngle = 360 / options.length;
+                
+                // 计算指针指向的扇形索引
+                // 由于指针在顶部，而转盘顺时针旋转，所以需要计算指针指向的位置
+                const resultIndex = Math.floor(((360 - finalAngle) % 360) / segmentAngle);
+                selectedOption = options[resultIndex % options.length];
+                
+                // 显示结果
+                document.getElementById('result-content').textContent = selectedOption;
+                document.getElementById('result').style.display = 'block';
+                
+                // 重置状态
+                isSpinning = false;
+                document.getElementById('spin-btn').disabled = false;
+                
+                // 滚动到结果区域
+                document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+            }, 4000); // 等待转盘停止旋转
+        }
+        
+        // 重新开始
+        function restart() {
+            document.getElementById('options-section').style.display = 'block';
+            document.getElementById('wheel-section').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+            
+            // 重置选项
+            const optionsList = document.getElementById('options-list');
+            optionsList.innerHTML = '';
+            
+            // 添加默认的两个选项
+            for (let i = 0; i < 2; i++) {
+                const optionItem = document.createElement('div');
+                optionItem.className = 'option-item';
+                
+                const optionInput = document.createElement('input');
+                optionInput.type = 'text';
+                optionInput.className = 'option-input';
+                optionInput.placeholder = `选项${i+1}`;
+                
+                const removeButton = document.createElement('button');
+                removeButton.className = 'remove-option';
+                removeButton.textContent = '×';
+                removeButton.addEventListener('click', function() {
+                    if (document.querySelectorAll('.option-item').length > 2) {
+                        this.parentElement.remove();
+                        updateOptionsArray();
+                    } else {
+                        alert('至少需要两个选项');
+                    }
+                });
+                
+                optionItem.appendChild(optionInput);
+                optionItem.appendChild(removeButton);
+                optionsList.appendChild(optionItem);
+            }
+            
+            // 重置选项数组
+            options = ['', ''];
+            
+            // 重置转盘
+            const wheel = document.getElementById('wheel');
+            wheel.innerHTML = '';
+            wheel.style.transform = 'rotate(0deg)';
+        }
+    </script>
+</body>
+</html>

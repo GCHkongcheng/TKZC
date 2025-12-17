@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸运数字 - 幸运占卜</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #673ab7, #9c27b0);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 90%;
+            margin: 2rem auto;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .lucky-number-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .input-section {
+            margin-bottom: 2rem;
+        }
+        
+        .input-section label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .input-section input {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            border: none;
+            width: 60%;
+            max-width: 300px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+        }
+        
+        .number-display {
+            font-size: 5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            animation: pulse 1.5s infinite alternate;
+        }
+        
+        .number-meaning {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        .back-button {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes pulse {
+            from {
+                transform: scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .input-section input {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔢 幸运数字 🔢</h1>
+        <p>每个人都有属于自己的幸运数字，它将为你带来好运和指引</p>
+        
+        <div class="lucky-number-container">
+            <div class="input-section">
+                <label for="name">请输入您的姓名：</label>
+                <input type="text" id="name" placeholder="例如：张三">
+                
+                <label for="birthdate">请输入您的出生日期：</label>
+                <input type="date" id="birthdate">
+                
+                <button id="generate-btn">生成我的幸运数字</button>
+            </div>
+            
+            <div class="result-section" id="result">
+                <h2>您的幸运数字是：</h2>
+                <div class="number-display" id="lucky-number">7</div>
+                
+                <div class="number-meaning" id="number-meaning">
+                    数字7代表智慧、内省和精神追求。这个数字暗示着您拥有分析能力和深度思考的天赋。在未来的日子里，这个数字将为您带来智慧的指引和精神上的满足。
+                </div>
+            </div>
+        </div>
+        
+        <button class="back-button" onclick="location.href='index.html'">返回主页</button>
+    </div>
+    
+    <footer>
+        <p>© 2025 幸运占卜 | 仅供娱乐，请勿过度沉迷</p>
+    </footer>
+    
+    <script>
+        document.getElementById('generate-btn').addEventListener('click', function() {
+            const name = document.getElementById('name').value.trim();
+            const birthdate = document.getElementById('birthdate').value;
+            
+            if (!name || !birthdate) {
+                alert('请输入您的姓名和出生日期！');
+                return;
+            }
+            
+            // 生成幸运数字的算法
+            let luckyNumber = generateLuckyNumber(name, birthdate);
+            
+            // 显示结果
+            document.getElementById('lucky-number').textContent = luckyNumber;
+            document.getElementById('number-meaning').innerHTML = getNumberMeaning(luckyNumber);
+            document.getElementById('result').style.display = 'block';
+            
+            // 平滑滚动到结果区域
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        function generateLuckyNumber(name, birthdate) {
+            // 基于姓名和生日生成一个1-9之间的数字
+            // 这里使用简单算法，实际应用中可以使用更复杂的算法
+            
+            let nameSum = 0;
+            for (let i = 0; i < name.length; i++) {
+                nameSum += name.charCodeAt(i);
+            }
+            
+            // 将出生日期转换为数字
+            const dateObj = new Date(birthdate);
+            const day = dateObj.getDate();
+            const month = dateObj.getMonth() + 1;
+            const year = dateObj.getFullYear();
+            
+            const dateSum = day + month + (year % 100);
+            
+            // 组合计算
+            let combinedSum = (nameSum + dateSum) % 9;
+            
+            // 确保结果在1-9之间
+            return combinedSum === 0 ? 9 : combinedSum;
+        }
+        
+        function getNumberMeaning(number) {
+            const meanings = {
+                1: "数字1代表领导力、独立和创新。这个数字暗示着您拥有开创新局面的能力和坚定的意志力。在未来的日子里，勇敢追求自己的目标，相信自己的判断。",
+                2: "数字2代表和谐、平衡和合作。这个数字暗示着您拥有良好的人际关系能力和敏锐的直觉。在未来的日子里，寻求合作与和谐将为您带来好运。",
+                3: "数字3代表创造力、表达和乐观。这个数字暗示着您拥有艺术天赋和积极的生活态度。在未来的日子里，发挥您的创造力和表达能力将带来成功。",
+                4: "数字4代表稳定、秩序和勤奋。这个数字暗示着您拥有踏实的工作态度和组织能力。在未来的日子里，通过努力工作和建立稳固基础将获得回报。",
+                5: "数字5代表自由、变化和冒险。这个数字暗示着您拥有适应变化的能力和对新体验的渴望。在未来的日子里，拥抱变化和保持灵活性将为您带来机遇。",
+                6: "数字6代表责任、关爱和和谐。这个数字暗示着您拥有关心他人的天性和创造和谐环境的能力。在未来的日子里，关注家庭和人际关系将带来幸福。",
+                7: "数字7代表智慧、内省和精神追求。这个数字暗示着您拥有分析能力和深度思考的天赋。在未来的日子里，这个数字将为您带来智慧的指引和精神上的满足。",
+                8: "数字8代表成功、权力和物质丰富。这个数字暗示着您拥有实现目标的决心和商业头脑。在未来的日子里，通过坚持不懈的努力将获得物质上的成功。",
+                9: "数字9代表完成、智慧和慷慨。这个数字暗示着您拥有广阔的视野和人道主义精神。在未来的日子里，通过帮助他人和完成使命将获得内心的满足。"
+            };
+            
+            return meanings[number] || "这个数字蕴含着神秘的能量，将在您的生活中展现其独特的意义。";
+        }
+    </script>
+</body>
+</html>

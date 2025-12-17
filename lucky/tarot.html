@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>塔罗牌 - 幸运占卜</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a237e, #311b92);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 90%;
+            margin: 2rem auto;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tarot-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .question-section {
+            margin-bottom: 2rem;
+        }
+        
+        .question-section select {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            border: none;
+            width: 80%;
+            max-width: 400px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
+            perspective: 1000px;
+        }
+        
+        .card {
+            width: 120px;
+            height: 200px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-back {
+            background: linear-gradient(45deg, #000, #333);
+            border: 2px solid gold; /* 修改：从 #gold 改为 gold */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23000"/><circle cx="50" cy="50" r="30" fill="none" stroke="gold" stroke-width="2"/><path d="M50 20 L50 80 M20 50 L80 50" stroke="gold" stroke-width="2"/></svg>');
+            background-size: 30px 30px;
+        }
+        
+        .card-front {
+            background: white;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            color: #333;
+        }
+        
+        .card-image {
+            width: 80px;
+            height: 120px;
+            margin-bottom: 10px;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid gold;
+            border-radius: 5px;
+        }
+        
+        .card-name {
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            animation: fadeIn 1s ease;
+        }
+        
+        .reading-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #FFD700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .reading-content {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            line-height: 1.6;
+            text-align: left;
+        }
+        
+        .selected-cards {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .selected-card {
+            width: 100px;
+            text-align: center;
+        }
+        
+        .selected-card-image {
+            width: 80px;
+            height: 120px;
+            margin: 0 auto 10px;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid gold;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .selected-card-name {
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .selected-card-position {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .shuffle-button {
+            background: #7e57c2;
+            margin-bottom: 1rem;
+        }
+        
+        .shuffle-button:hover {
+            background: #5e35b1;
+        }
+        
+        .back-button {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        button {
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin: 0.5rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .cards-container {
+                gap: 1rem;
+            }
+            
+            .card {
+                width: 100px;
+                height: 160px;
+            }
+            
+            .card-image {
+                width: 70px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🃏 塔罗牌 🃏</h1>
+        <p>通过神秘的塔罗牌，解读你的过去、现在与未来</p>
+        
+        <div class="tarot-container">
+            <div class="question-section">
+                <label for="question-select">请选择您想要解答的问题：</label>
+                <select id="question-select">
+                    <option value="">-- 请选择 --</option>
+                    <option value="love">爱情运势</option>
+                    <option value="career">事业发展</option>
+                    <option value="health">健康状况</option>
+                    <option value="wealth">财富运势</option>
+                    <option value="general">总体运势</option>
+                </select>
+                
+                <div>
+                    <button class="shuffle-button" id="shuffle-btn">洗牌</button>
+                </div>
+            </div>
+            
+            <div class="cards-container" id="cards-container">
+                <!-- 卡牌会在JavaScript中动态生成 -->
+            </div>
+            
+            <div class="result-section" id="result">
+                <h2 class="reading-title" id="reading-title">您的塔罗牌解读</h2>
+                
+                <div class="selected-cards" id="selected-cards">
+                    <!-- 选中的卡牌会在JavaScript中动态生成 -->
+                </div>
+                
+                <div class="reading-content" id="reading-content">
+                    <!-- 解读内容会在JavaScript中动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <button class="back-button" onclick="location.href='index.html'">返回主页</button>
+    </div>
+    
+    <footer>
+        <p>© 2025 幸运占卜 | 仅供娱乐，请勿过度沉迷</p>
+    </footer>
+    
+    <script>
+                // 塔罗牌数据
+                const tarotCards = [
+            { id: 0, name: "愚者", image: "tarot/fool.jpg", meaning: { love: "新的感情可能即将开始，保持开放的心态。", career: "可能有新的工作机会，不要害怕冒险。", health: "保持乐观的态度对健康有益。", wealth: "可能有意外的收入，但也要注意不要冲动消费。", general: "代表新的开始和无限可能，但也需要谨慎前行。" } },
+            { id: 1, name: "魔术师", image: "tarot/moshushi.jpg", meaning: { love: "您有能力吸引理想的伴侣，展现自信。", career: "您拥有实现目标的技能和资源，把握机会。", health: "通过积极的思想可以改善健康状况。", wealth: "财务上的创新想法将带来回报。", general: "代表创造力和掌控力，是实现愿望的好兆头。" } },
+            { id: 2, name: "女祭司", image: "tarot/nvjisi.jpg", meaning: { love: "倾听内心的声音，不要急于进入新的感情。", career: "依靠直觉做决定，可能会有意外的发现。", health: "关注内在的平衡，可能需要更多休息。", wealth: "财务决策需要深思熟虑，不要轻信他人。", general: "代表直觉和内在智慧，建议深入思考而非仓促行动。" } },
+            { id: 3, name: "皇后", image: "tarot/nvhuang.jpg", meaning: { love: "感情生活将丰富多彩，可能迎来稳定的关系。", career: "创造力将帮助您在工作中取得成功。", health: "保持情绪稳定对健康有益。", wealth: "财务状况将逐渐改善，可能有意外收获。", general: "代表丰收和创造力，是事业和感情都顺利的象征。" } },
+            { id: 4, name: "皇帝", image: "tarot/huangdi.jpg", meaning: { love: "在感情中需要稳定和结构，可能会遇到成熟的伴侣。", career: "领导能力将得到认可，可能获得晋升。", health: "建立规律的生活习惯对健康有益。", wealth: "财务规划将带来长期稳定的收入。", general: "代表权威和结构，是建立稳固基础的好时机。" } },
+            { id: 5, name: "教皇", image: "tarot/jiaohuang.jpg", meaning: { love: "传统的价值观在感情中起重要作用，可能会得到长辈的祝福。", career: "遵循传统的方法可能会带来成功，寻求导师的建议。", health: "精神健康和身体健康同样重要。", wealth: "保守的财务策略将带来稳定的回报。", general: "代表传统和精神指引，建议寻求智者的建议。" } },
+            { id: 6, name: "恋人", image: "tarot/lianren.jpg", meaning: { love: "感情生活将面临重要的选择，可能会遇到真爱。", career: "工作中的合作关系将变得重要，可能需要做出选择。", health: "情感健康对身体健康有重要影响。", wealth: "财务决策可能涉及伴侣或合作伙伴。", general: "代表选择和和谐，是做出重要决定的时刻。" } },
+            { id: 7, name: "战车", image: "tarot/zhanche.jpg", meaning: { love: "在感情中保持自信和决断力，可能需要主动出击。", career: "通过坚定的意志和努力，将克服工作中的障碍。", health: "保持积极进取的态度对健康有益。", wealth: "财务目标将通过努力和决心实现。", general: "代表胜利和意志力，是克服困难取得成功的象征。" } },
+            { id: 8, name: "力量", image: "tarot/liliang.jpg", meaning: { love: "感情中需要耐心和温柔的力量，不要过于强势。", career: "通过内在的力量和毅力，您将克服工作中的挑战。", health: "身体和精神的力量都很重要，保持平衡。", wealth: "理性控制消费欲望，将带来财务上的稳定。", general: "代表内在力量和勇气，是克服恐惧和困难的象征。" } },
+            { id: 9, name: "隐士", image: "tarot/yinshi.jpg", meaning: { love: "可能需要一段时间的独处来反思感情关系。", career: "深入思考和独立工作将带来成果。", health: "关注内在健康，可能需要更多休息和冥想。", wealth: "谨慎理财，避免不必要的开支。", general: "代表内省和智慧，是寻找内在答案的时刻。" } },
+            { id: 10, name: "命运之轮", image: "tarot/mingyun.jpg", meaning: { love: "感情生活可能会有意外的变化，保持开放的心态。", career: "职业生涯可能面临转折点，准备好迎接变化。", health: "健康状况可能会有波动，注意调整生活习惯。", wealth: "财务状况可能会有起伏，做好应对准备。", general: "代表变化和机遇，是命运转折的时刻。" } },
+            { id: 11, name: "正义", image: "tarot/zhengyi.jpg", meaning: { love: "感情关系需要诚实和平衡，可能需要做出公正的决定。", career: "公平对待同事和诚实工作将带来回报。", health: "保持生活的平衡对健康至关重要。", wealth: "诚实和公正的财务决策将带来长期利益。", general: "代表平衡和公正，是做出重要决定的时刻。" } },
+            { id: 12, name: "倒吊人", image: "tarot/daodiaoren.jpg", meaning: { love: "可能需要从不同角度看待感情问题，暂时的牺牲可能带来长远的幸福。", career: "工作中可能需要换个角度思考问题，接受暂时的不便。", health: "尝试新的健康方法可能带来意外的好处。", wealth: "财务上的牺牲可能带来长期的收益。", general: "代表牺牲和新视角，是重新审视生活的时刻。" } },
+            { id: 13, name: "死神", image: "tarot/sishen.jpg", meaning: { love: "感情关系可能需要结束旧的模式，迎接新的开始。", career: "职业生涯可能面临重大转变，结束旧的阶段。", health: "可能需要彻底改变生活方式以改善健康。", wealth: "财务状况可能需要重新规划，结束不必要的开支。", general: "代表结束和转变，是告别过去迎接新生活的时刻。" } },
+            { id: 14, name: "节制", image: "tarot/jiezhi.jpg", meaning: { love: "感情关系需要平衡和耐心，避免极端。", career: "工作中需要平衡各方面的需求，保持耐心。", health: "均衡的生活方式对健康至关重要。", wealth: "适度消费和储蓄将带来财务平衡。", general: "代表平衡和适度，是调和生活各方面的时刻。" } },
+            { id: 15, name: "恶魔", image: "tarot/mogui.jpg", meaning: { love: "可能面临感情中的诱惑或束缚，需要认清真相。", career: "工作中可能面临不良影响或限制，需要摆脱束缚。", health: "不良习惯可能影响健康，需要克服。", wealth: "物质欲望可能导致财务问题，需要控制。", general: "代表束缚和诱惑，是认清真相摆脱限制的时刻。" } },
+            { id: 16, name: "塔", image: "tarot/gaota.jpg", meaning: { love: "感情关系可能面临突然的变化或冲击，需要重建。", career: "职业生涯可能遭遇意外的变动，需要适应。", health: "可能面临健康方面的突发状况，需要及时应对。", wealth: "财务状况可能有突然的变化，需要重新规划。", general: "代表突变和启示，是打破旧有结构重建新生活的时刻。" } },
+            { id: 17, name: "星星", image: "tarot/xingxing.jpg", meaning: { love: "感情中的希望和信心将带来美好的结果。", career: "职业发展充满希望，保持乐观的态度。", health: "健康状况将逐渐改善，保持希望。", wealth: "财务状况有望改善，保持信心。", general: "代表希望和启示，是充满希望和信心的时刻。" } },
+            { id: 18, name: "月亮", image: "tarot/moon.jpg", meaning: { love: "感情中可能存在误解或隐藏的问题，需要澄清。", career: "工作中可能面临不确定性或混乱，需要谨慎。", health: "可能存在难以诊断的健康问题，需要更多关注。", wealth: "财务状况可能不明确，需要更多信息。", general: "代表幻觉和不确定性，是面对恐惧和澄清真相的时刻。" } },
+            { id: 19, name: "太阳", image: "tarot/sun.jpg", meaning: { love: "感情生活将充满阳光和快乐，可能迎来美好的关系。", career: "职业发展将一片光明，成功在望。", health: "健康状况将显著改善，充满活力。", wealth: "财务状况将明显好转，可能有意外收获。", general: "代表成功和喜悦，是充满阳光和快乐的时刻。" } },
+            { id: 20, name: "审判", image: "tarot/shenpan.jpg", meaning: { love: "感情关系可能面临重要的决定或转变，需要诚实面对。", career: "职业生涯可能迎来重要的评估或转折，准备好接受挑战。", health: "健康状况可能需要重新评估，做出重要决定。", wealth: "财务状况可能面临重要的审视，需要做出决策。", general: "代表重生和觉醒，是做出重要决定和迎接新生活的时刻。" } },
+            { id: 21, name: "世界", image: "tarot/world.jpg", meaning: { love: "感情生活将达到圆满的阶段，可能迎来完美的关系。", career: "职业目标将实现，达到圆满的成就。", health: "健康状况将达到理想状态，身心和谐。", wealth: "财务目标将实现，达到满意的状态。", general: "代表完成和圆满，是达成目标和庆祝成功的时刻。" } }
+        ];
+        
+        // 卡牌位置的含义
+        const positionMeanings = [
+            "过去 - 代表影响您当前状况的过去因素",
+            "现在 - 代表您目前所处的状况和面临的挑战",
+            "未来 - 代表可能的未来发展和结果"
+        ];
+        
+        let selectedCards = [];
+        let questionType = "";
+        
+        // 初始化
+        document.getElementById('shuffle-btn').addEventListener('click', function() {
+            const questionSelect = document.getElementById('question-select');
+            questionType = questionSelect.value;
+            
+            if (!questionType) {
+                alert('请先选择一个问题类型！');
+                return;
+            }
+            
+            // 清空之前的卡牌
+            const cardsContainer = document.getElementById('cards-container');
+            cardsContainer.innerHTML = '';
+            
+            // 清空选中的卡牌
+            selectedCards = [];
+            
+            // 隐藏结果
+            document.getElementById('result').style.display = 'none';
+            
+            // 洗牌（随机排序）
+            const shuffledCards = [...tarotCards].sort(() => Math.random() - 0.5);
+            
+            // 只显示前9张牌
+            for (let i = 0; i < 9; i++) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = shuffledCards[i].id;
+                
+                const cardBack = document.createElement('div');
+                cardBack.className = 'card-face card-back';
+                
+                const cardFront = document.createElement('div');
+                cardFront.className = 'card-face card-front';
+                
+                const cardImage = document.createElement('div');
+                cardImage.className = 'card-image';
+                cardImage.style.backgroundImage = `url(${shuffledCards[i].image})`;
+                
+                const cardName = document.createElement('div');
+                cardName.className = 'card-name';
+                cardName.textContent = shuffledCards[i].name;
+                
+                cardFront.appendChild(cardImage);
+                cardFront.appendChild(cardName);
+                
+                card.appendChild(cardBack);
+                card.appendChild(cardFront);
+                
+                card.addEventListener('click', function() {
+                    if (selectedCards.length < 3 && !this.classList.contains('flipped')) {
+                        this.classList.add('flipped');
+                        selectedCards.push(shuffledCards[i]);
+                        
+                        // 如果已选择3张牌，显示结果
+                        if (selectedCards.length === 3) {
+                            setTimeout(showReading, 1000);
+                        }
+                    }
+                });
+                
+                cardsContainer.appendChild(card);
+            }
+        });
+        
+        // 显示塔罗牌解读
+        function showReading() {
+            const selectedCardsContainer = document.getElementById('selected-cards');
+            selectedCardsContainer.innerHTML = '';
+            
+            // 显示选中的卡牌
+            for (let i = 0; i < selectedCards.length; i++) {
+                const card = selectedCards[i];
+                
+                const selectedCard = document.createElement('div');
+                selectedCard.className = 'selected-card';
+                
+                const cardImage = document.createElement('div');
+                cardImage.className = 'selected-card-image';
+                cardImage.style.backgroundImage = `url(${card.image})`;
+                
+                const cardName = document.createElement('div');
+                cardName.className = 'selected-card-name';
+                cardName.textContent = card.name;
+                
+                const cardPosition = document.createElement('div');
+                cardPosition.className = 'selected-card-position';
+                cardPosition.textContent = positionMeanings[i].split(' - ')[0];
+                
+                selectedCard.appendChild(cardImage);
+                selectedCard.appendChild(cardName);
+                selectedCard.appendChild(cardPosition);
+                
+                selectedCardsContainer.appendChild(selectedCard);
+            }
+            
+            // 生成解读内容
+            const readingContent = document.getElementById('reading-content');
+            let content = `<p>基于您选择的问题类型"${getQuestionTypeName(questionType)}"，以下是您的塔罗牌解读：</p>`;
+            
+            for (let i = 0; i < selectedCards.length; i++) {
+                const card = selectedCards[i];
+                const position = positionMeanings[i].split(' - ');
+                
+                content += `<h3>${position[0]}：${card.name}</h3>`;
+                content += `<p><strong>位置含义：</strong>${position[1]}</p>`;
+                content += `<p><strong>卡牌解读：</strong>${card.meaning[questionType]}</p>`;
+            }
+            
+            content += `<p><strong>综合解读：</strong>`;
+            content += `${selectedCards[0].name}代表您的过去，${selectedCards[1].name}反映您的现在，而${selectedCards[2].name}预示着您的未来。`;
+            content += `在${getQuestionTypeName(questionType)}方面，您需要从过去的经验中汲取教训，正视当前的挑战，并为未来做好准备。`;
+            content += `记住，塔罗牌只是提供指引，最终的选择和决定权仍在您手中。</p>`;
+            
+            readingContent.innerHTML = content;
+            
+            // 设置标题
+            document.getElementById('reading-title').textContent = `您的${getQuestionTypeName(questionType)}塔罗牌解读`;
+            
+            // 显示结果
+            document.getElementById('result').style.display = 'block';
+            
+            // 平滑滚动到结果区域
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 获取问题类型名称
+        function getQuestionTypeName(type) {
+            const types = {
+                "love": "爱情运势",
+                "career": "事业发展",
+                "health": "健康状况",
+                "wealth": "财富运势",
+                "general": "总体运势"
+            };
+            
+            return types[type] || "未知问题";
+        }
+    </script>
+</body>
+</html>

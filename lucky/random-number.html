@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机数字 - 幸运占卜</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #673ab7, #9c27b0);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 90%;
+            margin: 2rem auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .random-number-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            margin: 1.5rem 0;
+            gap: 1rem;
+        }
+        
+        .input-container {
+            flex: 1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        .generate-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .generate-btn:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .result-container {
+            margin-top: 2rem;
+            display: none;
+            animation: fadeIn 1s ease;
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #FFD700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .result-number {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+            margin: 1rem 0;
+        }
+        
+        .back-button {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes numberAnimation {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .animate-number {
+            animation: numberAnimation 0.8s ease-out;
+        }
+        
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 随机数字 🎲</h1>
+        <p>设定数字范围，让命运为你选择一个幸运数字</p>
+        
+        <div class="random-number-container">
+            <div class="input-group">
+                <div class="input-container">
+                    <label for="min-number">最小值</label>
+                    <input type="number" id="min-number" value="1" min="-9999" max="9999">
+                </div>
+                <div class="input-container">
+                    <label for="max-number">最大值</label>
+                    <input type="number" id="max-number" value="100" min="-9999" max="9999">
+                </div>
+            </div>
+            
+            <button class="generate-btn" id="generate-btn">生成随机数</button>
+            
+            <div class="result-container" id="result-container">
+                <h2 class="result-title">你的幸运数字是</h2>
+                <div class="result-number" id="result-number">42</div>
+                <p>这个数字将为你带来好运！</p>
+            </div>
+        </div>
+        
+        <button class="back-button" onclick="location.href='index.html'">返回主页</button>
+    </div>
+    
+    <footer>
+        <p>© 2025 幸运占卜 | 仅供娱乐，请勿过度沉迷</p>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generate-btn');
+            const minNumberInput = document.getElementById('min-number');
+            const maxNumberInput = document.getElementById('max-number');
+            const resultContainer = document.getElementById('result-container');
+            const resultNumber = document.getElementById('result-number');
+            
+            // 生成随机数按钮点击事件
+            generateBtn.addEventListener('click', function() {
+                // 获取输入值
+                let minNumber = parseInt(minNumberInput.value);
+                let maxNumber = parseInt(maxNumberInput.value);
+                
+                // 验证输入
+                if (isNaN(minNumber) || isNaN(maxNumber)) {
+                    alert('请输入有效的数字');
+                    return;
+                }
+                
+                // 确保最小值小于最大值
+                if (minNumber > maxNumber) {
+                    [minNumber, maxNumber] = [maxNumber, minNumber];
+                    minNumberInput.value = minNumber;
+                    maxNumberInput.value = maxNumber;
+                }
+                
+                // 生成随机数（包含最小值和最大值）
+                const randomNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
+                
+                // 显示结果
+                resultNumber.textContent = randomNumber;
+                resultNumber.classList.remove('animate-number');
+                
+                // 触发重绘以重新应用动画
+                void resultNumber.offsetWidth;
+                
+                // 添加动画类
+                resultNumber.classList.add('animate-number');
+                
+                // 显示结果容器
+                resultContainer.style.display = 'block';
+            });
+            
+            // 输入框验证
+            function validateInput(input) {
+                input.addEventListener('input', function() {
+                    // 限制输入范围
+                    if (this.value > 9999) this.value = 9999;
+                    if (this.value < -9999) this.value = -9999;
+                });
+            }
+            
+            validateInput(minNumberInput);
+            validateInput(maxNumberInput);
+        });
+    </script>
+</body>
+</html>

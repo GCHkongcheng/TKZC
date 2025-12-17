@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸运占卜</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #673ab7, #9c27b0);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 90%;
+            margin: 2rem auto;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .fortune-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .fortune-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 200px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .fortune-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .fortune-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .fortune-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .fortune-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .fortune-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .fortune-card {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ 幸运占卜 ✨</h1>
+        <p>探索命运的奥秘，寻找生活的指引</p>
+        
+        <div class="fortune-options">
+            <div class="fortune-card" onclick="location.href='lucky-number.html'">
+                <div class="fortune-icon">🔢</div>
+                <h2 class="fortune-title">幸运数字</h2>
+                <p class="fortune-desc">发现今日专属于你的幸运数字，为你带来好运</p>
+            </div>
+
+            <div class="fortune-card" onclick="location.href='lucky-color.html'">
+                <div class="fortune-icon">🎨</div>
+                <h2 class="fortune-title">幸运颜色</h2>
+                <p class="fortune-desc">发现今日专属于你的幸运颜色，为你带来好运与能量</p>
+            </div>
+            
+            <div class="fortune-card" onclick="location.href='fortune-stick.html'">
+                <div class="fortune-icon">🥢</div>
+                <h2 class="fortune-title">抽签</h2>
+                <p class="fortune-desc">古老的占卜方式，揭示你的运势与未来</p>
+            </div>
+            
+            <div class="fortune-card" onclick="location.href='tarot.html'">
+                <div class="fortune-icon">🃏</div>
+                <h2 class="fortune-title">塔罗牌</h2>
+                <p class="fortune-desc">通过神秘的塔罗牌，解读你的过去、现在与未来</p>
+            </div>
+            
+            <div class="fortune-card" onclick="location.href='horoscope.html'">
+                <div class="fortune-icon">♈</div>
+                <h2 class="fortune-title">星座运势</h2>
+                <p class="fortune-desc">基于星座的个性化运势预测，指引你的生活方向</p>
+            </div>
+
+            <div class="fortune-card" onclick="location.href='random-number.html'">
+                <div class="fortune-icon">🎲</div>
+                <h2 class="fortune-title">随机数字</h2>
+                <p class="fortune-desc">设定数字范围，让命运为你选择一个幸运数字</p>
+            </div>
+                        
+            <div class="fortune-card" onclick="location.href='decision.html'">
+                <div class="fortune-icon">🎯</div>
+                <h2 class="fortune-title">帮你决策</h2>
+                <p class="fortune-desc">无法做出选择？让命运之轮为你指明方向</p>
+            </div>
+            
+            <div class="fortune-card" onclick="location.href='dream.html'">
+                <div class="fortune-icon">💭</div>
+                <h2 class="fortune-title">周公解梦</h2>
+                <p class="fortune-desc">解析梦境中的隐藏信息，探索潜意识的奥秘</p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2025 幸运占卜 | 仅供娱乐，请勿过度沉迷</p>
+    </footer>
+</body>
+</html>
