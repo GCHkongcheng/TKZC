@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 对话转换器 - 天空之城</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #4a90e2;
+        --secondary-color: #6c5ce7;
+        --bg-color: #f5f7fa;
+        --card-bg: #fff;
+        --text-color: #333;
+        --border-radius: 12px;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Microsoft YaHei", sans-serif;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      header {
+        background: linear-gradient(135deg, #6c5ce7, #4a90e2);
+        color: white;
+        padding: 1.5rem 0;
+        text-align: center;
+        box-shadow: var(--shadow);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: white;
+        text-decoration: none;
+        position: absolute;
+        top: 1.5rem;
+        left: 1.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+      }
+
+      .back-link:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateX(-5px);
+      }
+
+      .tool-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        padding: 2rem;
+      }
+
+      .editor-container {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.5rem;
+        height: 600px;
+      }
+
+      @media (max-width: 768px) {
+        .editor-container {
+          grid-template-columns: 1fr;
+          height: auto;
+        }
+        .editor-container > div {
+          height: 400px;
+        }
+      }
+
+      .panel {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-width: 0; /* 防止内容撑开容器 */
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        color: var(--secondary-color);
+      }
+
+      textarea {
+        flex: 1;
+        width: 100%;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        resize: none;
+        font-family: "Consolas", "Monaco", monospace;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+        background-color: #fafafa;
+      }
+
+      textarea:focus {
+        border-color: var(--primary-color);
+        background-color: #fff;
+      }
+
+      #preview {
+        flex: 1;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow-y: auto;
+        overflow-x: auto; /* 允许横向滚动，不撑开宽度 */
+        background: white;
+      }
+
+      .actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1rem;
+      }
+
+      .btn {
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn-primary {
+        background: var(--primary-color);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #3a80d2;
+        transform: translateY(-2px);
+      }
+
+      .btn-secondary {
+        background: var(--secondary-color);
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background: #5b4bc4;
+        transform: translateY(-2px);
+      }
+
+      /* Markdown Preview Styles */
+      #preview h1,
+      #preview h2,
+      #preview h3 {
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.3rem;
+      }
+
+      #preview p {
+        margin-bottom: 1rem;
+      }
+
+      #preview code {
+        background: #f0f0f0;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: "Consolas", monospace;
+      }
+
+      #preview pre {
+        background: #f8f8f8;
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin-bottom: 1rem;
+      }
+
+      #preview pre code {
+        background: transparent;
+        padding: 0;
+      }
+
+      #preview blockquote {
+        border-left: 4px solid #ddd;
+        padding-left: 1rem;
+        color: #666;
+        margin-bottom: 1rem;
+      }
+
+      #preview img {
+        max-width: 100%;
+      }
+
+      #preview table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 1rem;
+      }
+
+      #preview th,
+      #preview td {
+        border: 1px solid #ddd;
+        padding: 0.5rem;
+        text-align: left;
+      }
+
+      #preview th {
+        background: #f5f5f5;
+      }
+
+      footer {
+        background-color: #2d3436;
+        color: white;
+        padding: 1.5rem 0;
+        text-align: center;
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="../index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i> 返回首页
+      </a>
+      <h1>AI 对话转换器</h1>
+      <p>完美转换 Markdown 与数学公式，一键粘贴至文档</p>
+    </header>
+
+    <main class="container">
+      <div class="tool-card">
+        <div class="editor-container">
+          <div class="panel">
+            <div class="panel-header">
+              <span>Markdown 输入</span>
+              <span id="char-count">0 字</span>
+            </div>
+            <textarea
+              id="input"
+              placeholder="在此粘贴来自 ChatGPT/DeepSeek 的 Markdown 内容..."
+            ></textarea>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <span>实时预览</span>
+              <span>渲染完成</span>
+            </div>
+            <div id="preview" class="markdown-body"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary" id="paste-btn">
+            <i class="fas fa-paste"></i> 粘贴内容
+          </button>
+          <button class="btn btn-primary" id="copy-btn">
+            <i class="fas fa-copy"></i> 复制为富文本 (可直接粘贴到 Word)
+          </button>
+          <button class="btn btn-secondary" id="clear-btn">
+            <i class="fas fa-trash"></i> 清空内容
+          </button>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <h3>使用说明</h3>
+        <ul style="margin-left: 1.5rem; margin-top: 1rem">
+          <li>在左侧输入框粘贴 AI 生成的 Markdown 内容。</li>
+          <li>支持 <b>LaTeX 数学公式</b>（如 $E=mc^2$ 或 $$...$$）。</li>
+          <li>支持 <b>代码高亮</b>、表格、列表等 Markdown 语法。</li>
+          <li>
+            点击“复制为富文本”后，可直接粘贴到
+            Word、飞书、钉钉等文档编辑器中，保持格式完美。
+          </li>
+        </ul>
+      </div>
+    </main>
+
+    <footer>
+      <p>© 2025 天空之城 - 多功能工具集</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <script>
+      const input = document.getElementById("input");
+      const preview = document.getElementById("preview");
+      const copyBtn = document.getElementById("copy-btn");
+      const pasteBtn = document.getElementById("paste-btn");
+      const clearBtn = document.getElementById("clear-btn");
+      const charCount = document.getElementById("char-count");
+
+      // 配置 marked
+      const renderer = new marked.Renderer();
+
+      function updatePreview() {
+        let text = input.value;
+        charCount.textContent = `${text.length} 字`;
+
+        // 预处理：防止 marked 吞掉数学公式的反斜杠
+        text = text.replace(/\\\[/g, "\\\\[").replace(/\\\]/g, "\\\\]");
+        text = text.replace(/\\\(/g, "\\\\(").replace(/\\\)/g, "\\\\)");
+
+        // 渲染 Markdown
+        preview.innerHTML = marked.parse(text);
+
+        // 代码高亮
+        preview.querySelectorAll("pre code").forEach((block) => {
+          hljs.highlightElement(block);
+        });
+
+        // 渲染数学公式
+        renderMathInElement(preview, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true },
+          ],
+          throwOnError: false,
+        });
+      }
+
+      // 同步滚动
+      let isScrolling = false;
+      input.addEventListener("scroll", () => {
+        if (!isScrolling) {
+          isScrolling = true;
+          const scrollPercentage =
+            input.scrollTop / (input.scrollHeight - input.clientHeight);
+          preview.scrollTop =
+            scrollPercentage * (preview.scrollHeight - preview.clientHeight);
+          setTimeout(() => {
+            isScrolling = false;
+          }, 50);
+        }
+      });
+
+      preview.addEventListener("scroll", () => {
+        if (!isScrolling) {
+          isScrolling = true;
+          const scrollPercentage =
+            preview.scrollTop / (preview.scrollHeight - preview.clientHeight);
+          input.scrollTop =
+            scrollPercentage * (input.scrollHeight - input.clientHeight);
+          setTimeout(() => {
+            isScrolling = false;
+          }, 50);
+        }
+      });
+
+      input.addEventListener("input", updatePreview);
+
+      pasteBtn.addEventListener("click", async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          input.value = text;
+          updatePreview();
+        } catch (err) {
+          console.error("无法读取剪贴板:", err);
+          alert("无法读取剪贴板，请使用 Ctrl+V 手动粘贴。");
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        input.value = "";
+        updatePreview();
+      });
+
+      copyBtn.addEventListener("click", async () => {
+        if (!input.value.trim()) {
+          alert("请先输入内容");
+          return;
+        }
+
+        try {
+          // 获取预览区的 HTML
+          // 为了让 Word 更好地识别，我们需要包含基础样式和 KaTeX 样式
+          const katexCss = Array.from(document.styleSheets)
+            .filter((sheet) => sheet.href && sheet.href.includes("katex"))
+            .map((sheet) => `<link rel="stylesheet" href="${sheet.href}">`)
+            .join("");
+
+          const styles = `
+                    <style>
+                        body { font-family: sans-serif; }
+                        table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
+                        th, td { border: 1px solid #ddd; padding: 8px; }
+                        th { background-color: #f2f2f2; }
+                        pre { background-color: #f8f8f8; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
+                        code { font-family: monospace; background-color: #f0f0f0; padding: 2px 4px; border-radius: 3px; }
+                        blockquote { border-left: 4px solid #ddd; padding-left: 10px; color: #666; font-style: italic; }
+                        .katex-display { margin: 1em 0; overflow-x: auto; overflow-y: hidden; }
+                    </style>
+                    ${katexCss}
+                `;
+          const htmlContent = styles + preview.innerHTML;
+
+          // 使用 ClipboardItem 复制富文本
+          const blob = new Blob([htmlContent], { type: "text/html" });
+          const data = [
+            new ClipboardItem({
+              "text/html": blob,
+              "text/plain": new Blob([input.value], { type: "text/plain" }),
+            }),
+          ];
+
+          await navigator.clipboard.write(data);
+
+          const originalText = copyBtn.innerHTML;
+          copyBtn.innerHTML = '<i class="fas fa-check"></i> 已复制到剪贴板';
+          copyBtn.classList.replace("btn-primary", "btn-secondary");
+
+          setTimeout(() => {
+            copyBtn.innerHTML = originalText;
+            copyBtn.classList.replace("btn-secondary", "btn-primary");
+          }, 2000);
+        } catch (err) {
+          console.error("复制失败:", err);
+          alert("复制失败，请手动选择预览内容进行复制。");
+        }
+      });
+
+      // 初始示例内容
+      input.value = `# 欢迎使用 AI 对话转换器
+
+这是一个示例。你可以粘贴包含数学公式的内容：
+
+**质能方程：** $E = mc^2$
+
+**毕奥-萨伐尔定律：**
+\[
+d\vec{B} = \frac{\mu_0}{4\pi} \frac{I d\vec{l} \times \vec{r}}{r^3}
+\]
+
+**勾股定理：**
+$$a^2 + b^2 = c^2$$
+
+**代码示例：**
+\`\`\`python
+def hello_world():
+    print("Hello, AI!")
+\`\`\`
+`;
+      updatePreview();
+    </script>
+  </body>
+</html>

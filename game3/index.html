@@ -358,6 +358,69 @@
           transform: scale(0.8);
         }
       }
+
+      /* Rhythm Skill Button */
+      #rhythm-skill-container {
+        position: absolute;
+        bottom: 30px;
+        right: 30px;
+        width: 80px;
+        height: 200px; /* Increased height to accommodate falling path */
+        pointer-events: none; /* Container shouldn't block, button inside will */
+        display: flex;
+        justify-content: center;
+        align-items: flex-end; /* Align button to bottom */
+        z-index: 15;
+      }
+
+      #rhythm-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(0, 243, 255, 0.2);
+        border: 2px solid var(--neon-blue);
+        box-shadow: 0 0 10px var(--neon-blue);
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 10px;
+        color: var(--neon-blue);
+        user-select: none;
+        transition: transform 0.1s;
+        pointer-events: auto; /* Re-enable clicks */
+        margin-bottom: 10px;
+      }
+
+      #rhythm-btn:active {
+        transform: scale(0.9);
+        background: rgba(0, 243, 255, 0.5);
+      }
+
+      .rhythm-note {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 48px;
+        color: var(--neon-pink);
+        text-shadow: 0 0 5px var(--neon-pink);
+        pointer-events: none;
+        opacity: 0.8;
+        transition: opacity 0.1s;
+      }
+
+      .rhythm-feedback {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 14px;
+        font-weight: bold;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.5s, top 0.5s;
+      }
     </style>
   </head>
   <body>
@@ -379,6 +442,12 @@
           <div id="combo-multiplier">×1</div>
         </div>
 
+        <!-- Rhythm Skill Button -->
+        <div id="rhythm-skill-container" style="display: none">
+          <div id="rhythm-btn">冲刺</div>
+          <div id="rhythm-feedback" class="rhythm-feedback"></div>
+        </div>
+
         <div id="start-screen">
           <h1 class="glitch" data-text="NEON MIKU RUN">NEON MIKU RUN</h1>
           <p>HIGH SCORE: <span id="start-high-score">0</span></p>
@@ -386,32 +455,53 @@
             按住跳跃 / 长按大跳 / 连按二段跳 / 下键滑铲
           </p>
           <div style="display: flex; gap: 20px">
-            <button id="normal-btn" class="btn">普通模式</button>
-            <button
-              id="hard-btn"
-              class="btn"
-              style="
-                border-color: var(--neon-pink);
-                color: var(--neon-pink);
-                box-shadow: 0 0 10px var(--neon-pink),
-                  inset 0 0 10px var(--neon-pink);
-              "
-            >
-              困难模式
-            </button>
+            <button id="normal-btn" class="btn">开始游戏</button>
           </div>
 
           <div id="audio-controls">
-            <label for="audio-input" class="file-label"
-              >导入本地音乐 (可选)</label
+            <label for="bgm-select" class="file-label">选择背景音乐</label>
+            <select
+              id="bgm-select"
+              class="btn"
+              style="
+                margin-top: 5px;
+                width: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                text-align: center;
+              "
             >
-            <input type="file" id="audio-input" accept="audio/*" />
-            <div id="music-info">无音乐模式</div>
+              <!-- Options populated by JS -->
+            </select>
+            <div id="music-info">当前: Neon Runner (Default)</div>
           </div>
         </div>
 
         <div id="pause-menu" style="display: none">
           <h1 class="glitch" data-text="PAUSED">PAUSED</h1>
+
+          <!-- Latency Calibration -->
+          <div style="margin: 20px 0; text-align: center">
+            <p style="margin-bottom: 10px; color: var(--neon-blue)">
+              音频延迟校准 (Audio Offset)
+            </p>
+            <div style="display: flex; align-items: center; gap: 15px">
+              <button id="offset-minus" class="btn" style="padding: 5px 15px">
+                -
+              </button>
+              <span
+                id="offset-val"
+                style="font-size: 20px; min-width: 60px; text-align: center"
+                >0ms</span
+              >
+              <button id="offset-plus" class="btn" style="padding: 5px 15px">
+                +
+              </button>
+            </div>
+            <p style="font-size: 12px; color: #888; margin-top: 5px">
+              (正值: 音频滞后 / 负值: 音频超前)
+            </p>
+          </div>
+
           <button id="resume-btn" class="btn">CONTINUE</button>
           <button
             id="exit-btn"
@@ -446,9 +536,8 @@
       const resumeBtn = document.getElementById("resume-btn");
       const exitBtn = document.getElementById("exit-btn");
       const normalBtn = document.getElementById("normal-btn");
-      const hardBtn = document.getElementById("hard-btn");
       const restartBtn = document.getElementById("restart-btn");
-      const audioInput = document.getElementById("audio-input");
+      const bgmSelect = document.getElementById("bgm-select");
       const musicInfo = document.getElementById("music-info");
       const instructionText = document.getElementById("instruction-text");
 
@@ -462,7 +551,9 @@
       let gamePaused = false;
       let score = 0;
       let highScore = localStorage.getItem("neonMikuHighScore") || 0;
+      let globalOffset = parseInt(localStorage.getItem("neonMikuOffset")) || 0; // Audio Latency Offset
       let currentDifficulty = "normal";
+      let gameTime = 0; // Track total game time for difficulty curve
       let frameCount = 0;
       let gameSpeed = 5;
       let battery = 3;
@@ -474,6 +565,34 @@
       const comboDisplay = document.getElementById("combo-display");
       const comboCountEl = document.getElementById("combo-count");
       const comboMultiplierEl = document.getElementById("combo-multiplier");
+
+      // Rhythm Skill UI
+      const rhythmContainer = document.getElementById("rhythm-skill-container");
+      const rhythmBtn = document.getElementById("rhythm-btn");
+      const rhythmFeedback = document.getElementById("rhythm-feedback");
+
+      let rhythmBPM = 120; // Default BPM
+      let rhythmInterval = 60000 / rhythmBPM; // ms per beat
+      let lastRhythmClickTime = 0;
+
+      // Note System
+      let notes = [];
+      const noteFallDuration = 1500; // ms to fall from top to target
+      let lastSpawnedBeatIndex = -1;
+
+      // Rhythm Patterns (1 = Note, 0 = Rest, 2 = Hold Start)
+      const rhythmPatterns = [
+        [1, 0, 1, 0], // Basic
+        [1, 1, 1, 0], // Triple
+        [1, 0, 1, 1], // Syncopated
+        [1, 1, 1, 1], // Rush
+        [2, 0, 0, 0], // Long Hold (4 beats)
+      ];
+      let currentPatternIndex = 0;
+
+      // Hold Note State
+      let isHoldingNote = false;
+      let currentHoldNote = null;
 
       // Spawn Logic Variables
       let spawnTimer = 0;
@@ -493,10 +612,17 @@
       // Audio Context
       let audioCtx;
       let audioSource;
+      let bgmGainNode; // Control BGM volume specifically
+      let sfxGainNode; // Master volume for SFX
       let analyser;
+      let filterNode; // Lowpass filter for dynamic audio
       let dataArray;
       let audioPlaying = false;
       let beatDetected = false;
+
+      // Delta Time Logic
+      let lastTime = 0;
+      let deltaTimeMultiplier = 1.0;
 
       // Audio Element for streaming (better for preventing auto-download issues)
       const bgmAudio = new Audio();
@@ -531,33 +657,105 @@
       window.addEventListener("resize", resize);
       resize();
 
+      // Song List Configuration
+      const songList = [
+        {
+          name: "Neon Runner (Default)",
+          src: "BGM1.mp3",
+          bpm: 128,
+          offset: 0.0,
+        },
+        { name: "Cyber Chase", src: "BGM2.mp3", bpm: 140, offset: 0.0 },
+      ];
+      let currentSong = songList[0];
+
+      // Sprite Loading
+      const sprites = {
+        running: [],
+        jumping: [],
+        dashing: [],
+        sliding: null,
+        obstacles: {},
+        dashEffect: null,
+      };
+
+      function loadSprites() {
+        // Running (1-6)
+        for (let i = 1; i <= 6; i++) {
+          const img = new Image();
+          img.src = `pic/Running_${i}.png`;
+          sprites.running.push(img);
+        }
+        // Jumping (1-3)
+        for (let i = 1; i <= 3; i++) {
+          const img = new Image();
+          img.src = `pic/Jumping_${i}.png`;
+          sprites.jumping.push(img);
+        }
+        // Dashing (1-3)
+        for (let i = 1; i <= 3; i++) {
+          const img = new Image();
+          img.src = `pic/Dashing_${i}.png`;
+          sprites.dashing.push(img);
+        }
+        // Sliding
+        const img = new Image();
+        img.src = `pic/Sliding.png`;
+        sprites.sliding = img;
+
+        // Obstacles
+        sprites.obstacles.barrier = new Image();
+        sprites.obstacles.barrier.src = "pic/barrier.png";
+
+        sprites.obstacles.crate = new Image();
+        sprites.obstacles.crate.src = "pic/crate.png";
+
+        sprites.obstacles.drone = new Image();
+        sprites.obstacles.drone.src = "pic/drone.png";
+
+        sprites.obstacles.trap = new Image();
+        sprites.obstacles.trap.src = "pic/trap.png";
+
+        // Effect
+        sprites.dashEffect = new Image();
+        sprites.dashEffect.src = "pic/dasheffect.png";
+      }
+
       // Audio Setup
-      // Load default music on startup
       window.addEventListener("DOMContentLoaded", () => {
-        loadDefaultMusic();
+        loadSprites();
+        initSongList();
+        loadSong(0);
       });
 
-      function loadDefaultMusic() {
-        musicInfo.textContent = "默认音乐已就绪: BGM1.mp3";
-        bgmAudio.src = "BGM1.mp3";
+      function initSongList() {
+        bgmSelect.innerHTML = "";
+        songList.forEach((song, index) => {
+          const option = document.createElement("option");
+          option.value = index;
+          option.textContent = `${song.name} (${song.bpm} BPM)`;
+          bgmSelect.appendChild(option);
+        });
+      }
 
-        // Handle loading errors (e.g., CORS when running locally without server)
+      function loadSong(index) {
+        currentSong = songList[index];
+        bgmAudio.src = currentSong.src;
+        musicInfo.textContent = `当前: ${currentSong.name}`;
+
+        // Update Rhythm Globals
+        rhythmBPM = currentSong.bpm;
+        rhythmInterval = (60000 / rhythmBPM) * 2; // Dash available every 2 beats
+
         bgmAudio.onerror = function () {
-          console.warn(
-            "Audio failed to load. This is expected if running from file:// without a server."
-          );
-          musicInfo.textContent = "无法加载音频 (需本地服务器)";
-          // Don't crash or keep trying
+          console.warn("Audio failed to load.");
+          musicInfo.textContent = "无法加载音频 (文件不存在?)";
         };
       }
 
-      audioInput.addEventListener("change", function (e) {
-        const file = e.target.files[0];
-        if (file) {
-          musicInfo.textContent = `已选择: ${file.name}`;
-          const url = URL.createObjectURL(file);
-          bgmAudio.src = url;
-        }
+      bgmSelect.addEventListener("change", function (e) {
+        loadSong(parseInt(e.target.value));
+        bgmSelect.blur();
       });
 
       function initAudioContext() {
@@ -567,22 +765,52 @@
           analyser.fftSize = 256;
           dataArray = new Uint8Array(analyser.frequencyBinCount);
 
+          // Master SFX Gain
+          sfxGainNode = audioCtx.createGain();
+          sfxGainNode.gain.value = 0.4; // SFX Volume
+          sfxGainNode.connect(audioCtx.destination);
+
           // Connect Audio Element to Web Audio API
           try {
             audioSource = audioCtx.createMediaElementSource(bgmAudio);
-            audioSource.connect(analyser);
+
+            // Create Filter Node
+            filterNode = audioCtx.createBiquadFilter();
+            filterNode.type = "lowpass";
+            filterNode.frequency.value = 22000; // Default open
+
+            // Create BGM Gain Node (For ducking/volume)
+            bgmGainNode = audioCtx.createGain();
+            bgmGainNode.gain.value = 0.6; // BGM Volume (slightly lower to let SFX pop)
+
+            // Chain: Source -> Filter -> Gain -> Analyser -> Destination
+            audioSource.connect(filterNode);
+            filterNode.connect(bgmGainNode);
+            bgmGainNode.connect(analyser);
             analyser.connect(audioCtx.destination);
           } catch (e) {
             console.warn(
               "Visualizer init failed (likely CORS), music will still play.",
               e
             );
-            // Fallback: If Web Audio fails, audio still plays from element,
-            // but visualizer won't work.
           }
         }
         if (audioCtx.state === "suspended") {
           audioCtx.resume();
+        }
+      }
+
+      function setMusicMuffled(isMuffled) {
+        if (!filterNode || !audioCtx) return;
+        const now = audioCtx.currentTime;
+        if (isMuffled) {
+          // Muffle sound (Lowpass filter)
+          filterNode.frequency.cancelScheduledValues(now);
+          filterNode.frequency.exponentialRampToValueAtTime(600, now + 0.2);
+        } else {
+          // Restore sound
+          filterNode.frequency.cancelScheduledValues(now);
+          filterNode.frequency.exponentialRampToValueAtTime(22000, now + 1.0);
         }
       }
 
@@ -656,263 +884,74 @@
           this.isSliding = false;
           this.slideTimer = 0;
           this.lastJumpInput = false;
+          this.isDashing = false;
+          this.dashTimer = 0;
+        }
+
+        dash() {
+          if (this.isDashing) return;
+          this.isDashing = true;
+          this.dashTimer = 20; // Dash duration (frames)
+          this.vy = 0; // Defy gravity momentarily
+          createParticles(this.x, this.y + this.height / 2, 20, COLORS.blue);
         }
 
         draw() {
           ctx.save();
 
           // Draw Trail (Afterimage)
-          this.history.forEach((pos, index) => {
-            // Skip trail drawing for cleaner look with new model, or use simplified version
-            // For now, let's just not draw it or draw a very faint glow
-          });
+          let currentImg;
+          let drawWidth = this.width + 40; // Adjust size as sprites might be wider
+          let drawHeight = this.height + 20;
+          let drawX = this.x - 20;
+          let drawY = this.y - 10;
 
-          // Animation variables
-          let bobY = 0;
-          let legAngle = 0;
-          let armAngle = 0;
-          let hairSway = 0;
-
-          if (this.isGrounded) {
-            if (this.isSliding) {
-              // Sliding Pose
-              bobY = 10;
-              legAngle = 1.5; // Legs back
-              armAngle = 1.0; // Arms forward
-              hairSway = -20; // Hair trailing back
-            } else {
-              bobY = Math.sin(this.runFrame * 0.4) * 2;
-              legAngle = Math.sin(this.runFrame * 0.4) * 0.5; // Radians
-              armAngle = Math.cos(this.runFrame * 0.4) * 0.5;
-              hairSway = Math.sin(this.runFrame * 0.4) * 5;
-            }
+          if (this.isDashing) {
+            // Dashing animation
+            const frameIndex = Math.floor(frameCount / 5) % 3;
+            currentImg = sprites.dashing[frameIndex];
+          } else if (this.isSliding) {
+            currentImg = sprites.sliding;
+            // Fix: Use original visual height to avoid squashing
+            drawHeight = this.originalHeight + 20;
+            // Align sprite bottom to ground (hitbox bottom)
+            // Hitbox is small (30px), so we draw up from the bottom
+            drawY = this.y + this.height - drawHeight + 10;
+          } else if (!this.isGrounded) {
+            // Jumping
+            // Use vertical velocity to determine frame? Or just loop
+            // Let's loop for now
+            const frameIndex = Math.floor(frameCount / 10) % 3;
+            currentImg = sprites.jumping[frameIndex];
           } else {
-            // Jump pose
-            legAngle = 0.3; // One leg forward, one back
-            armAngle = -0.5; // Arms up
-            hairSway = -15 + Math.sin(frameCount * 0.1) * 5;
-
-            if (this.jumpCount > 1) {
-              // Double Jump Spin/Pose
-              hairSway = Math.sin(frameCount * 0.5) * 20;
-            }
+            // Running
+            const frameIndex = Math.floor(this.runFrame) % 6;
+            currentImg = sprites.running[frameIndex];
           }
 
-          const centerX = this.x + this.width / 2;
-          const centerY = this.y + this.height / 2 + bobY;
-
-          // Helper colors
-          const cSkin = "#ffe0bd";
-          const cTeal = "#39c5bb"; // Miku Teal
-          const cDark = "#282828";
-          const cGrey = "#d1d1d1";
-          const cRed = "#eb004e";
-
-          if (this.isSliding) {
-            // Rotate for slide
-            ctx.translate(centerX, centerY + 15);
-            ctx.rotate(-0.5); // Lean forward/down
-            ctx.translate(-centerX, -centerY - 15);
-          }
-
-          // --- TWIN TAILS (BACK) ---
-          ctx.save();
-          ctx.translate(centerX, centerY - 15);
-          ctx.fillStyle = cTeal;
-          ctx.shadowColor = cTeal;
-          ctx.shadowBlur = 15;
-
-          // Left Tail
-          ctx.beginPath();
-          ctx.moveTo(-10, 0);
-          ctx.quadraticCurveTo(-35 - hairSway, 20, -25 - hairSway, 50); // Tip
-          ctx.quadraticCurveTo(-15 - hairSway, 25, -5, 5);
-          ctx.fill();
-
-          // Right Tail
-          ctx.beginPath();
-          ctx.moveTo(10, 0);
-          ctx.quadraticCurveTo(35 + hairSway, 20, 25 + hairSway, 50); // Tip
-          ctx.quadraticCurveTo(15 + hairSway, 25, 5, 5);
-          ctx.fill();
-          ctx.restore();
-
-          // --- LEFT LIMBS (BACKGROUND) ---
-          ctx.save();
-          ctx.translate(centerX, centerY + 5);
-
-          // Left Leg
-          ctx.save();
-          ctx.translate(-5, 10); // Hip joint
-          ctx.rotate(this.isGrounded ? -legAngle : -0.2);
-          // Thigh (Skin)
-          ctx.fillStyle = cSkin;
-          ctx.fillRect(-3, 0, 6, 8);
-          // Boot
-          ctx.fillStyle = cDark;
-          ctx.fillRect(-3.5, 6, 7, 14);
-          // Neon Trim
-          ctx.fillStyle = cTeal;
-          ctx.shadowColor = cTeal;
-          ctx.shadowBlur = 8;
-          ctx.fillRect(-3.5, 6, 7, 2);
-          ctx.shadowBlur = 0;
-          ctx.restore();
-
-          // Left Arm
-          ctx.save();
-          ctx.translate(-8, -5); // Shoulder joint
-          ctx.rotate(armAngle);
-          // Shoulder (Skin)
-          ctx.fillStyle = cSkin;
-          ctx.fillRect(-2, 0, 4, 6);
-          // Arm warmer
-          ctx.fillStyle = cDark;
-          ctx.fillRect(-2.5, 5, 5, 10);
-          // Neon Trim
-          ctx.fillStyle = cTeal;
-          ctx.shadowColor = cTeal;
-          ctx.shadowBlur = 8;
-          ctx.fillRect(-2.5, 13, 5, 2);
-          ctx.shadowBlur = 0;
-          ctx.restore();
-
-          ctx.restore();
-
-          // --- BODY ---
-          ctx.save();
-          ctx.translate(centerX, centerY);
-
-          // Shirt
-          ctx.fillStyle = cGrey;
-          ctx.fillRect(-7, -10, 14, 18);
-
-          // Collar/Tie area
-          ctx.fillStyle = cTeal;
-          ctx.beginPath();
-          ctx.moveTo(-2, -10);
-          ctx.lineTo(2, -10);
-          ctx.lineTo(3, 5); // Tie tip
-          ctx.lineTo(-3, 5);
-          ctx.fill();
-
-          // Skirt
-          ctx.fillStyle = cDark;
-          ctx.fillRect(-8, 8, 16, 8);
-          // Skirt Neon Line
-          ctx.fillStyle = cTeal;
-          ctx.shadowColor = cTeal;
-          ctx.shadowBlur = 10;
-          ctx.fillRect(-8, 14, 16, 2);
-          ctx.shadowBlur = 0;
-
-          ctx.restore();
-
-          // --- HEAD ---
-          ctx.save();
-          ctx.translate(centerX, centerY - 20); // Head center
-
-          // Face
-          ctx.fillStyle = cSkin;
-          ctx.beginPath();
-          if (ctx.roundRect) {
-            ctx.roundRect(-9, -9, 18, 18, 4);
+          if (
+            currentImg &&
+            currentImg.complete &&
+            currentImg.naturalWidth !== 0
+          ) {
+            ctx.drawImage(currentImg, drawX, drawY, drawWidth, drawHeight);
           } else {
-            ctx.rect(-9, -9, 18, 18); // Fallback
+            // Fallback to simple rect if image not loaded
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
           }
-          ctx.fill();
-
-          // Eyes
-          ctx.fillStyle = "#FFF";
-          ctx.fillRect(2, -2, 6, 7); // Right eye base (facing right)
-          ctx.fillStyle = "#00aadd";
-          ctx.fillRect(4, -1, 3, 5); // Iris
-          ctx.fillStyle = "#FFF";
-          ctx.fillRect(5, 0, 1, 1); // Highlight
-
-          // Headset
-          ctx.fillStyle = cDark;
-          ctx.fillRect(-2, -10, 4, 12); // Band/Earpiece
-          ctx.fillStyle = cRed;
-          ctx.shadowColor = cRed;
-          ctx.shadowBlur = 8;
-          ctx.fillRect(0, -2, 2, 2); // Light
-          ctx.shadowBlur = 0;
-          ctx.fillStyle = cDark;
-          ctx.fillRect(2, 2, 4, 1); // Mic
-
-          // Bangs
-          ctx.fillStyle = cTeal;
-          ctx.shadowColor = cTeal;
-          ctx.shadowBlur = 8;
-          ctx.beginPath();
-          ctx.moveTo(-10, -8);
-          ctx.lineTo(10, -8);
-          ctx.lineTo(10, 2);
-          ctx.lineTo(6, -4);
-          ctx.lineTo(2, 2);
-          ctx.lineTo(-2, -4);
-          ctx.lineTo(-10, 2);
-          ctx.fill();
-          ctx.shadowBlur = 0;
-
-          // Hair Accessories
-          ctx.fillStyle = cRed; // Square clips
-          ctx.fillRect(-11, -8, 4, 4);
-          ctx.fillRect(7, -8, 4, 4);
-
-          ctx.restore();
-
-          // --- RIGHT LIMBS (FOREGROUND) ---
-          ctx.save();
-          ctx.translate(centerX, centerY + 5);
-
-          // Right Leg
-          ctx.save();
-          ctx.translate(5, 10); // Hip joint
-          ctx.rotate(this.isGrounded ? legAngle : 0.2);
-          // Thigh
-          ctx.fillStyle = cSkin;
-          ctx.fillRect(-3, 0, 6, 8);
-          // Boot
-          ctx.fillStyle = cDark;
-          ctx.fillRect(-3.5, 6, 7, 14);
-          // Trim
-          ctx.fillStyle = cTeal;
-          ctx.shadowColor = cTeal;
-          ctx.shadowBlur = 8;
-          ctx.fillRect(-3.5, 6, 7, 2);
-          ctx.shadowBlur = 0;
-          ctx.restore();
-
-          // Right Arm
-          ctx.save();
-          ctx.translate(8, -5); // Shoulder joint
-          ctx.rotate(-armAngle);
-          // Shoulder
-          ctx.fillStyle = cSkin;
-          ctx.fillRect(-2, 0, 4, 6);
-          // Arm warmer
-          ctx.fillStyle = cDark;
-          ctx.fillRect(-2.5, 5, 5, 10);
-          // Trim
-          ctx.fillStyle = cTeal;
-          ctx.shadowColor = cTeal;
-          ctx.shadowBlur = 8;
-          ctx.fillRect(-2.5, 13, 5, 2);
-          ctx.shadowBlur = 0;
-          ctx.restore();
-
-          ctx.restore();
-
-          // Restore global state
-          ctx.restore();
 
           // Draw Shield (Overlay)
           if (hasShield) {
             ctx.save();
             ctx.beginPath();
-            ctx.arc(centerX, centerY, 40, 0, Math.PI * 2);
+            ctx.arc(
+              this.x + this.width / 2,
+              this.y + this.height / 2,
+              40,
+              0,
+              Math.PI * 2
+            );
             ctx.strokeStyle = `rgba(57, 197, 187, ${
               0.5 + Math.sin(frameCount * 0.1) * 0.3
             })`;
@@ -922,9 +961,11 @@
             ctx.fill();
             ctx.restore();
           }
+
+          ctx.restore();
         }
 
-        update(input) {
+        update(input, beat, dt) {
           const jumpPressed = input.keys.space || input.keys.touch;
 
           // Slide Logic
@@ -947,7 +988,8 @@
 
               this.slideTimer = input.keys.swipeDown ? 45 : 0; // Duration for swipe, hold for key
             }
-            if (input.keys.swipeDown && this.slideTimer > 0) this.slideTimer--;
+            if (input.keys.swipeDown && this.slideTimer > 0)
+              this.slideTimer -= dt;
           } else if (this.isSliding) {
             // Check if forced to slide (e.g. swipe timer) or key released
             if (
@@ -958,18 +1000,29 @@
               this.height = this.originalHeight;
               this.y -= 30; // Restore position
             } else if (this.slideTimer > 0) {
-              this.slideTimer--;
+              this.slideTimer -= dt;
             }
           }
 
           // Update History for Trail
-          if (frameCount % 3 === 0) {
+          if (frameCount % 3 < 1 * dt) {
             this.history.push({ x: this.x, y: this.y });
             if (this.history.length > 5) this.history.shift();
           }
 
           // Update Animation Frame
-          this.runFrame += 0.5;
+          this.runFrame += 0.5 * dt;
+
+          // Dash Logic
+          if (this.isDashing) {
+            this.dashTimer -= dt;
+            this.vy = 0; // Float
+            if (this.dashTimer <= 0) {
+              this.isDashing = false;
+            }
+            // While dashing, skip gravity and jump logic
+            return;
+          }
 
           // Jump logic
 
@@ -982,10 +1035,21 @@
             }
             if (this.isGrounded) {
               this.jump();
+              // Rhythm Bonus
+              if (beat > 160) {
+                score += 50;
+                createFloatingText(
+                  "PERFECT!",
+                  this.x,
+                  this.y - 40,
+                  COLORS.pink
+                );
+                createParticles(this.x, this.y + this.height, 15, COLORS.pink);
+              }
             } else if (jumpPressed && this.isJumping && this.jumpTimer < 15) {
               // Long press logic
-              this.vy -= 0.8; // Add upward force
-              this.jumpTimer++;
+              this.vy -= 0.8 * dt; // Add upward force
+              this.jumpTimer += dt;
             } else if (!this.lastJumpInput && this.jumpCount < 2) {
               // Double Jump (require fresh press)
               this.jump(true);
@@ -995,8 +1059,8 @@
           }
           this.lastJumpInput = jumpPressed;
 
-          this.y += this.vy;
-          this.vy += this.gravity;
+          this.y += this.vy * dt;
+          this.vy += this.gravity * dt;
 
           const groundY = canvas.height - 100 - this.height;
           if (this.y > groundY) {
@@ -1120,50 +1184,91 @@
             return;
           }
 
-          ctx.save();
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = this.color;
-          ctx.fillStyle = "rgba(0,0,0,0.5)";
-          ctx.strokeStyle = this.color;
-          ctx.lineWidth = 3;
-
-          if (this.type === 1) {
-            // Spike (Triangle)
-            ctx.beginPath();
-            ctx.moveTo(this.x, this.y + this.height);
-            ctx.lineTo(this.x + this.width / 2, this.y);
-            ctx.lineTo(this.x + this.width, this.y + this.height);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-          } else {
-            // Block & Moving
-            ctx.fillRect(this.x, this.y, this.width, this.height);
-            ctx.strokeRect(this.x, this.y, this.width, this.height);
-
-            // Detail lines
-            ctx.beginPath();
-            ctx.moveTo(this.x, this.y);
-            ctx.lineTo(this.x + this.width, this.y + this.height);
-            ctx.stroke();
-
-            // Visuals for moving types
-            if (this.type === 3 || this.type === 4) {
-              ctx.fillStyle = this.color;
-              ctx.globalAlpha = 0.5;
-              ctx.fillRect(
-                this.x + 10,
-                this.y + 10,
-                this.width - 20,
-                this.height - 20
-              );
-            }
+          let img = null;
+          if (this.type === 0) {
+            // Block
+            img = sprites.obstacles.barrier;
+          } else if (this.type === 1) {
+            // Spike -> Crate
+            img = sprites.obstacles.crate;
+          } else if (this.type === 2 || this.type === 3 || this.type === 4) {
+            // Flying / Moving
+            img = sprites.obstacles.drone;
           }
-          ctx.restore();
+
+          if (img && img.complete && img.naturalWidth !== 0) {
+            // Calculate aspect ratio to avoid stretching
+            const ratio = img.naturalWidth / img.naturalHeight;
+            let drawWidth = this.width;
+            let drawHeight = this.height;
+            let drawX = this.x;
+            let drawY = this.y;
+
+            // Adjust dimensions based on ratio
+            // We prioritize height for ground obstacles to ensure they sit on ground
+            // But for flying ones, we might want to center
+
+            // Simple approach: Fit height, adjust width
+            drawWidth = drawHeight * ratio;
+
+            // Center horizontally relative to hitbox
+            drawX = this.x + (this.width - drawWidth) / 2;
+
+            // For ground obstacles (type 0, 1), align bottom
+            // For flying (2,3,4), align center
+            if (this.type === 0 || this.type === 1) {
+              drawY = this.y + (this.height - drawHeight);
+            } else {
+              drawY = this.y + (this.height - drawHeight) / 2;
+            }
+
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+          } else {
+            ctx.save();
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 3;
+
+            if (this.type === 1) {
+              // Spike (Triangle)
+              ctx.beginPath();
+              ctx.moveTo(this.x, this.y + this.height);
+              ctx.lineTo(this.x + this.width / 2, this.y);
+              ctx.lineTo(this.x + this.width, this.y + this.height);
+              ctx.closePath();
+              ctx.fill();
+              ctx.stroke();
+            } else {
+              // Block & Moving
+              ctx.fillRect(this.x, this.y, this.width, this.height);
+              ctx.strokeRect(this.x, this.y, this.width, this.height);
+
+              // Detail lines
+              ctx.beginPath();
+              ctx.moveTo(this.x, this.y);
+              ctx.lineTo(this.x + this.width, this.y + this.height);
+              ctx.stroke();
+
+              // Visuals for moving types
+              if (this.type === 3 || this.type === 4) {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = 0.5;
+                ctx.fillRect(
+                  this.x + 10,
+                  this.y + 10,
+                  this.width - 20,
+                  this.height - 20
+                );
+              }
+            }
+            ctx.restore();
+          }
         }
 
-        update() {
-          this.x -= gameSpeed;
+        update(dt) {
+          this.x -= gameSpeed * dt;
 
           if (this.type === 3) {
             // Vertical
@@ -1172,10 +1277,10 @@
               Math.sin(frameCount * this.moveSpeed) * this.moveRange;
           } else if (this.type === 4) {
             // Horizontal Drift
-            this.x -= this.speedOffset;
+            this.x -= this.speedOffset * dt;
           } else if (this.type === 5) {
             // Laser
-            this.timer++;
+            this.timer += dt;
             if (this.timer % 180 < 90) this.active = true;
             else this.active = false;
           }
@@ -1245,8 +1350,8 @@
           ctx.restore();
         }
 
-        update() {
-          this.x -= gameSpeed;
+        update(dt) {
+          this.x -= gameSpeed * dt;
           if (this.x < -this.width) this.markedForDeletion = true;
         }
       }
@@ -1285,9 +1390,9 @@
           this.velocity = -2; // Move up
           this.markedForDeletion = false;
         }
-        update() {
-          this.y += this.velocity;
-          this.life -= 0.02;
+        update(dt) {
+          this.y += this.velocity * dt;
+          this.life -= 0.02 * dt;
           if (this.life <= 0) this.markedForDeletion = true;
         }
         draw() {
@@ -1305,48 +1410,57 @@
       // SFX Generator
       function playSound(type) {
         if (!audioCtx) return;
-        // Only play if context is running
-        if (audioCtx.state === "suspended") {
-          audioCtx.resume();
-        }
+        if (audioCtx.state === "suspended") audioCtx.resume();
 
         const osc = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
 
         osc.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
+        gainNode.connect(sfxGainNode); // Connect to Master SFX Gain
 
         const now = audioCtx.currentTime;
+
+        // Audio Ducking (Sidechain Compression Effect)
+        // When important sounds play, lower BGM volume briefly
+        if (bgmGainNode && (type === "powerup" || type === "hit")) {
+          bgmGainNode.gain.cancelScheduledValues(now);
+          bgmGainNode.gain.setValueAtTime(bgmGainNode.gain.value, now);
+          bgmGainNode.gain.exponentialRampToValueAtTime(0.2, now + 0.05); // Duck down
+          bgmGainNode.gain.exponentialRampToValueAtTime(0.6, now + 0.5); // Recover
+        }
 
         if (type === "jump") {
           osc.type = "sine";
           osc.frequency.setValueAtTime(300, now);
           osc.frequency.linearRampToValueAtTime(600, now + 0.1);
-          gainNode.gain.setValueAtTime(0.2, now);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          gainNode.gain.setValueAtTime(0.5, now);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
           osc.start(now);
-          osc.stop(now + 0.1);
+          osc.stop(now + 0.2);
         } else if (type === "coin") {
+          // Retro Coin: Two tones
           osc.type = "square";
           osc.frequency.setValueAtTime(1200, now);
           osc.frequency.setValueAtTime(1600, now + 0.05);
-          gainNode.gain.setValueAtTime(0.1, now);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          gainNode.gain.setValueAtTime(0.3, now);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
           osc.start(now);
-          osc.stop(now + 0.1);
+          osc.stop(now + 0.15);
         } else if (type === "powerup") {
+          // Powerup: Arpeggio-like slide
           osc.type = "triangle";
           osc.frequency.setValueAtTime(400, now);
-          osc.frequency.linearRampToValueAtTime(800, now + 0.2);
-          gainNode.gain.setValueAtTime(0.1, now);
-          gainNode.gain.linearRampToValueAtTime(0, now + 0.2);
+          osc.frequency.linearRampToValueAtTime(1200, now + 0.3);
+          gainNode.gain.setValueAtTime(0.3, now);
+          gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
           osc.start(now);
-          osc.stop(now + 0.2);
+          osc.stop(now + 0.3);
         } else if (type === "hit") {
+          // Hit: Noise-like Sawtooth
           osc.type = "sawtooth";
-          osc.frequency.setValueAtTime(150, now);
-          osc.frequency.exponentialRampToValueAtTime(50, now + 0.2);
-          gainNode.gain.setValueAtTime(0.2, now);
+          osc.frequency.setValueAtTime(100, now);
+          osc.frequency.exponentialRampToValueAtTime(20, now + 0.2);
+          gainNode.gain.setValueAtTime(0.5, now);
           gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
           osc.start(now);
           osc.stop(now + 0.2);
@@ -1400,10 +1514,10 @@
           this.life = 1.0;
         }
 
-        update() {
-          this.x += this.speedX;
-          this.y += this.speedY;
-          this.life -= 0.05;
+        update(dt) {
+          this.x += this.speedX * dt;
+          this.y += this.speedY * dt;
+          this.life -= 0.05 * dt;
           if (this.life <= 0) this.markedForDeletion = true;
         }
         draw() {
@@ -1432,12 +1546,12 @@
           this.isSky = isSky;
         }
 
-        update() {
+        update(dt) {
           this.speed = gameSpeed * this.speedModifier;
           if (this.isSky) {
             // Sky objects might move independently
           }
-          this.x -= this.speed;
+          this.x -= this.speed * dt;
           if (this.x <= -this.width) {
             this.x = 0;
           }
@@ -1534,8 +1648,8 @@
           this.speed = Math.random() * 2 + 1; // Opposite direction, so moves left faster or slower
           this.color = Math.random() > 0.5 ? COLORS.pink : COLORS.blue;
         }
-        update() {
-          this.x -= this.speed + 0.5; // Move left
+        update(dt) {
+          this.x -= (this.speed + 0.5) * dt; // Move left
           if (this.x < -100) {
             this.x = canvas.width + Math.random() * 500;
             this.y = Math.random() * (canvas.height / 2);
@@ -1562,8 +1676,8 @@
           this.speed = (Math.random() - 0.5) * 0.02;
           this.color = `rgba(255, 255, 255, 0.1)`;
         }
-        update(beat) {
-          this.angle += this.speed;
+        update(beat, dt) {
+          this.angle += this.speed * dt;
           if (this.angle < -Math.PI || this.angle > 0) this.speed = -this.speed;
 
           if (beat > 150) {
@@ -1805,17 +1919,21 @@
         floatingTexts = [];
         player = new Player();
 
-        if (currentDifficulty === "hard") {
-          gameSpeed = 8;
-          baseSpawnInterval = 80;
-        } else {
-          gameSpeed = 5;
-          baseSpawnInterval = 100;
-        }
+        gameSpeed = 5;
+        gameTime = 0; // Reset difficulty timer
+        baseSpawnInterval = 100;
 
         frameCount = 0;
         spawnTimer = 0;
+        lastBeatIndex = 0; // Reset beat tracking
         hasShield = false;
+
+        // Reset Rhythm State
+        notes.forEach((n) => n.element.remove());
+        notes = [];
+        isHoldingNote = false;
+        currentHoldNote = null;
+        lastSpawnedBeatIndex = -1;
 
         // Re-init background layers
         backgroundLayers = [
@@ -1835,13 +1953,14 @@
         startScreen.style.display = "none";
         pauseMenu.style.display = "none";
         settingsBtn.style.display = "block";
+        rhythmContainer.style.display = "flex";
 
         if (!audioPlaying) playMusic();
-        animate();
+        lastTime = 0;
+        requestAnimationFrame(animate);
       }
 
-      function startGame(difficulty) {
-        currentDifficulty = difficulty;
+      function startGame() {
         resetGame();
       }
 
@@ -1855,7 +1974,8 @@
         } else {
           pauseMenu.style.display = "none";
           resumeMusic();
-          animate();
+          lastTime = 0;
+          requestAnimationFrame(animate);
         }
       }
 
@@ -1867,15 +1987,128 @@
         gameOverScreen.style.display = "none";
         startScreen.style.display = "flex";
         settingsBtn.style.display = "none";
+        rhythmContainer.style.display = "none";
         startHighScoreEl.innerText = highScore;
       }
 
-      normalBtn.addEventListener("click", () => startGame("normal"));
-      hardBtn.addEventListener("click", () => startGame("hard"));
+      // Offset Controls
+      const offsetValEl = document.getElementById("offset-val");
+      const offsetMinusBtn = document.getElementById("offset-minus");
+      const offsetPlusBtn = document.getElementById("offset-plus");
+
+      function updateOffsetDisplay() {
+        offsetValEl.innerText = `${globalOffset}ms`;
+        localStorage.setItem("neonMikuOffset", globalOffset);
+      }
+      updateOffsetDisplay();
+
+      offsetMinusBtn.addEventListener("click", () => {
+        globalOffset -= 10;
+        updateOffsetDisplay();
+      });
+
+      offsetPlusBtn.addEventListener("click", () => {
+        globalOffset += 10;
+        updateOffsetDisplay();
+      });
+
+      normalBtn.addEventListener("click", () => startGame());
       restartBtn.addEventListener("click", resetGame);
       settingsBtn.addEventListener("click", togglePause);
       resumeBtn.addEventListener("click", togglePause);
       exitBtn.addEventListener("click", exitToMenu);
+
+      // Rhythm Button Logic
+      const handleRhythmInputStart = (e) => {
+        e.stopPropagation();
+        e.preventDefault(); // Prevent mouse emulation on touch
+        if (!gameRunning || gamePaused) return;
+
+        const now = performance.now();
+        // Sync time logic same as animate loop
+        let syncTime = now;
+        if (audioPlaying && bgmAudio.duration > 0 && !bgmAudio.paused) {
+          syncTime =
+            (bgmAudio.currentTime - currentSong.offset) * 1000 - globalOffset;
+        }
+
+        // Find closest note
+        let closestNote = null;
+        let minDiff = Infinity;
+
+        // Check all notes
+        for (let i = 0; i < notes.length; i++) {
+          const diff = Math.abs(syncTime - notes[i].targetTime);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestNote = notes[i];
+          }
+        }
+
+        // Hit Window: 150ms
+        let isHit = false;
+        if (closestNote && minDiff < 150) {
+          isHit = true;
+
+          if (closestNote.type === 2) {
+            // Start Hold
+            isHoldingNote = true;
+            currentHoldNote = closestNote;
+            closestNote.element.style.opacity = 0.5; // Visual feedback
+            player.dash(); // Initial dash
+          } else {
+            // Normal Hit
+            closestNote.element.remove();
+            notes = notes.filter((n) => n !== closestNote);
+            player.dash();
+          }
+        }
+
+        // Show Feedback
+        rhythmFeedback.style.opacity = 1;
+        rhythmFeedback.style.top = "0px";
+
+        if (isHit) {
+          rhythmFeedback.innerText = "PERFECT!";
+          rhythmFeedback.style.color = COLORS.blue;
+          rhythmFeedback.style.textShadow = `0 0 10px ${COLORS.blue}`;
+          playSound("powerup");
+        } else {
+          rhythmFeedback.innerText = "MISS";
+          rhythmFeedback.style.color = "#888";
+          rhythmFeedback.style.textShadow = "none";
+        }
+
+        setTimeout(() => {
+          rhythmFeedback.style.opacity = 0;
+          rhythmFeedback.style.top = "10px";
+        }, 500);
+      };
+
+      const handleRhythmInputEnd = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+
+        if (isHoldingNote && currentHoldNote) {
+          // Released hold
+          isHoldingNote = false;
+          // Check if released at end of duration?
+          // For simplicity, just end the hold state.
+          // Remove the note now
+          if (currentHoldNote.element) currentHoldNote.element.remove();
+          notes = notes.filter((n) => n !== currentHoldNote);
+          currentHoldNote = null;
+        }
+      };
+
+      rhythmBtn.addEventListener("mousedown", handleRhythmInputStart);
+      rhythmBtn.addEventListener("touchstart", handleRhythmInputStart);
+
+      rhythmBtn.addEventListener("mouseup", handleRhythmInputEnd);
+      rhythmBtn.addEventListener("touchend", handleRhythmInputEnd);
+      rhythmBtn.addEventListener("mouseleave", handleRhythmInputEnd); // Handle drag out
+
+      // Remove old click listener if any (replaced by mousedown/touchstart)
 
       // Initialize UI state
       settingsBtn.style.display = "none";
@@ -1912,8 +2145,37 @@
       }
 
       // Main Loop
-      function animate() {
+      function animate(timestamp) {
         if (!gameRunning || gamePaused) return;
+
+        if (!timestamp) timestamp = performance.now();
+
+        // Calculate Delta Time
+        if (!lastTime) lastTime = timestamp;
+        const deltaTime = timestamp - lastTime;
+        lastTime = timestamp;
+
+        // Normalize to 60 FPS (16.67ms per frame)
+        // If 144Hz (6.9ms), multiplier ~= 0.41
+        // If 30Hz (33.3ms), multiplier ~= 2.0
+        deltaTimeMultiplier = deltaTime / 16.67;
+
+        // Cap multiplier to prevent huge jumps on lag spikes
+        if (deltaTimeMultiplier > 3) deltaTimeMultiplier = 3;
+
+        // Difficulty Curve Logic
+        gameTime += deltaTime;
+        if (gameTime < 30000) {
+          // Stage 1: Warm Up
+          gameSpeed = 5;
+        } else if (gameTime < 60000) {
+          // Stage 2: Normal
+          gameSpeed = 7;
+        } else {
+          // Stage 3: Fever
+          // Cap speed at 12
+          gameSpeed = Math.min(12, 9 + (gameTime - 60000) / 10000);
+        }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1926,9 +2188,193 @@
           }px var(--neon-purple)`;
         }
 
+        // Visual Pulse
+        let isPulse = beat > 180;
+        if (isPulse) {
+          ctx.save();
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          ctx.scale(1.02, 1.02);
+          ctx.translate(-canvas.width / 2, -canvas.height / 2);
+        }
+
+        // Rhythm Note Spawning & Update
+        // Sync with Audio Time if playing, else timestamp
+        let syncTime = timestamp;
+        if (audioPlaying && bgmAudio.duration > 0 && !bgmAudio.paused) {
+          syncTime =
+            (bgmAudio.currentTime - currentSong.offset) * 1000 - globalOffset;
+        }
+
+        // 1. Spawn Notes
+        // Look ahead by fallDuration
+        const lookAheadTime = syncTime + noteFallDuration;
+        const currentBeatIndex = Math.floor(lookAheadTime / rhythmInterval);
+
+        if (currentBeatIndex > lastSpawnedBeatIndex) {
+          // New beat opportunity
+          lastSpawnedBeatIndex = currentBeatIndex;
+
+          // Determine Pattern
+          // Change pattern every 16 beats (4 bars)
+          const barIndex = Math.floor(currentBeatIndex / 16);
+          currentPatternIndex = barIndex % rhythmPatterns.length;
+          const pattern = rhythmPatterns[currentPatternIndex];
+
+          // Check if note should spawn on this beat
+          const beatInPattern = currentBeatIndex % 4; // 4 beats per pattern
+          const noteType = pattern[beatInPattern];
+
+          if (noteType === 1 || noteType === 2) {
+            // Spawn Note
+            const noteEl = document.createElement("div");
+            noteEl.className = "rhythm-note";
+            noteEl.innerText = "♪";
+
+            // If Hold Note
+            if (noteType === 2) {
+              noteEl.classList.add("hold-note");
+              noteEl.innerText = "▲"; // Visual distinction
+              // Add tail
+              const tail = document.createElement("div");
+              tail.style.position = "absolute";
+              tail.style.bottom = "100%";
+              tail.style.left = "50%";
+              tail.style.transform = "translateX(-50%)";
+              tail.style.width = "10px";
+              tail.style.backgroundColor = "rgba(0, 243, 255, 0.5)";
+              // Length for 4 beats (approx)
+              // Speed = 160px / 1500ms = 0.106 px/ms
+              // 4 beats = 4 * rhythmInterval
+              const holdLength = 4 * rhythmInterval * (160 / 1500);
+              tail.style.height = `${holdLength}px`;
+              noteEl.appendChild(tail);
+            }
+
+            rhythmContainer.appendChild(noteEl);
+
+            notes.push({
+              element: noteEl,
+              targetTime: currentBeatIndex * rhythmInterval,
+              type: noteType,
+              duration: noteType === 2 ? 4 * rhythmInterval : 0,
+            });
+          }
+        }
+
+        // Hold Note Logic
+        if (isHoldingNote && currentHoldNote) {
+          // Keep dashing
+          player.dash();
+
+          // Check for completion
+          const timeSinceHit = syncTime - currentHoldNote.targetTime;
+          if (timeSinceHit >= currentHoldNote.duration) {
+            // Success!
+            isHoldingNote = false;
+            if (currentHoldNote.element) currentHoldNote.element.remove();
+            notes = notes.filter((n) => n !== currentHoldNote);
+            currentHoldNote = null;
+
+            // Feedback
+            rhythmFeedback.innerText = "HOLD COMPLETE!";
+            rhythmFeedback.style.opacity = 1;
+            rhythmFeedback.style.top = "0px";
+            rhythmFeedback.style.color = COLORS.green;
+            rhythmFeedback.style.textShadow = `0 0 10px ${COLORS.green}`;
+            playSound("powerup");
+
+            score += 500;
+            scoreEl.innerText = score;
+
+            setTimeout(() => {
+              rhythmFeedback.style.opacity = 0;
+              rhythmFeedback.style.top = "10px";
+            }, 500);
+          }
+        }
+
+        // 2. Update Notes
+        const startBottom = 200; // Top of container
+        const targetBottom = 40; // Center of button
+        const totalDistance = startBottom - targetBottom;
+
+        // Filter out missed notes
+        notes = notes.filter((note) => {
+          const timeUntilHit = note.targetTime - syncTime;
+
+          // Calculate position
+          // progress: 1.0 (start) -> 0.0 (hit) -> negative (miss)
+          const progress = timeUntilHit / noteFallDuration;
+
+          if (progress < -0.2) {
+            // Special case for Hold Note
+            if (note.type === 2 && isHoldingNote && note === currentHoldNote) {
+              // Keep it alive while holding
+              return true;
+            }
+
+            // Missed
+            note.element.remove();
+            return false;
+          }
+
+          // Update CSS
+          // If progress is 1, bottom is startBottom
+          // If progress is 0, bottom is targetBottom
+          const currentBottom = targetBottom + progress * totalDistance;
+          note.element.style.bottom = `${currentBottom}px`;
+
+          // Fade in
+          if (progress > 0.8) {
+            note.element.style.opacity = (1 - progress) * 5;
+          } else {
+            note.element.style.opacity = 0.8;
+          }
+
+          // Highlight if in window
+          if (Math.abs(timeUntilHit) < 100) {
+            note.element.style.color = "#fff";
+            note.element.style.textShadow = "0 0 10px #fff";
+          } else {
+            note.element.style.color = "var(--neon-pink)";
+            note.element.style.textShadow = "0 0 5px var(--neon-pink)";
+          }
+
+          return true;
+        });
+
+        // Visual Cue: Button Glows if ANY note is in window
+        const anyNoteInWindow = notes.some(
+          (n) => Math.abs(n.targetTime - syncTime) < 100
+        );
+        if (anyNoteInWindow) {
+          rhythmBtn.style.background = "rgba(0, 243, 255, 0.8)"; // Bright Glow
+          rhythmBtn.style.boxShadow = "0 0 25px var(--neon-blue)";
+          rhythmBtn.style.transform = "scale(1.05)";
+          rhythmBtn.style.border = "2px solid #fff";
+        } else {
+          rhythmBtn.style.background = "rgba(0, 243, 255, 0.2)"; // Dim
+          rhythmBtn.style.boxShadow = "0 0 10px var(--neon-blue)";
+          rhythmBtn.style.transform = "scale(1.0)";
+          rhythmBtn.style.border = "2px solid var(--neon-blue)";
+        }
+
+        // Pulse on exact beat (Visual feedback only)
+        // Removed ring pulse logic
+
+        // UI Pulse
+        const scoreBoard = document.getElementById("score-board");
+        if (beat > 170) {
+          scoreBoard.style.transform = `scale(1.2)`;
+          scoreBoard.style.color = "#fff";
+        } else {
+          scoreBoard.style.transform = `scale(1.0)`;
+          scoreBoard.style.color = "var(--neon-blue)";
+        }
+
         // Draw Backgrounds
         backgroundLayers.forEach((layer) => {
-          layer.update();
+          layer.update(deltaTimeMultiplier);
           layer.draw(ctx);
         });
 
@@ -1937,13 +2383,13 @@
 
         // Searchlights
         searchLights.forEach((light) => {
-          light.update(beat);
+          light.update(beat, deltaTimeMultiplier);
           light.draw();
         });
 
         // Flying Cars
         flyingCars.forEach((car) => {
-          car.update();
+          car.update(deltaTimeMultiplier);
           car.draw();
         });
 
@@ -1959,86 +2405,79 @@
         ctx.shadowBlur = 0;
 
         // Player
-        player.update(input);
+        player.update(input, beat, deltaTimeMultiplier);
         player.draw();
 
         // Obstacles
         // Dynamic Spawn Logic
-        spawnTimer++;
 
-        // --- Advanced Rhythm-based Spawning System ---
+        // --- Rhythm-based Spawning System (Muse Dash Style) ---
+        // Spawn obstacles strictly on beats
 
-        // 1. Calculate Progression Target (Linear difficulty curve)
-        // Instead of steps, use a smooth target based on frameCount
-        // Target drops from 100 to 40 over 10000 frames (~3 mins)
-        let difficultyProgress = Math.min(1, frameCount / 10000);
-        let targetBaseInterval =
-          baseSpawnInterval -
-          difficultyProgress * (baseSpawnInterval - minSpawnInterval);
-
-        // 2. Rhythm Phase Cycle
-        rhythmPhase = (frameCount % rhythmCycleLength) / rhythmCycleLength;
-        let phaseModifier = 1.0;
-
-        // Visual Debug (Optional: can be removed or used for UI)
-        // let phaseName = "";
-
-        if (rhythmPhase < 0.2) {
-          // Rest Zone: Spawn rate slower (1.5x interval)
-          phaseModifier = 1.5;
-          // phaseName = "REST";
-        } else if (rhythmPhase < 0.5) {
-          // Build Up: Normal speed
-          phaseModifier = 1.0;
-          // phaseName = "BUILD";
-        } else if (rhythmPhase < 0.8) {
-          // Danger Zone: Spawn rate faster (0.7x interval)
-          phaseModifier = 0.7;
-          // phaseName = "DANGER";
-
-          // Add visual tint for danger zone?
-          if (frameCount % 60 === 0) {
-            // Subtle red flash could go here
-          }
+        let obstacleBeatIndex = 0;
+        if (audioPlaying && bgmAudio.duration > 0 && !bgmAudio.paused) {
+          // Use audio time for precision
+          const songTime = Math.max(
+            0,
+            bgmAudio.currentTime - currentSong.offset
+          );
+          const beatDuration = 60 / rhythmBPM;
+          obstacleBeatIndex = Math.floor(songTime / beatDuration);
         } else {
-          // Cooldown: Normal speed
-          phaseModifier = 1.0;
-          // phaseName = "COOL";
+          // Fallback to timestamp if no audio
+          const beatDuration = 60 / rhythmBPM;
+          obstacleBeatIndex = Math.floor(timestamp / 1000 / beatDuration);
         }
 
-        // 3. Audio Intensity Impact
-        // Intensity acts as a further multiplier, especially effective in Danger Zone
-        let intensityModifier = 1.0;
-        if (beat > 100) {
-          // Map beat 100-255 to 1.0-0.5 multiplier
-          let intensity = (beat - 100) / 155; // 0 to 1
-          intensityModifier = 1.0 - intensity * 0.5;
-        }
+        if (obstacleBeatIndex > lastBeatIndex) {
+          // A new beat has occurred!
+          lastBeatIndex = obstacleBeatIndex;
 
-        // 4. Calculate Final Target Interval
-        let finalTargetInterval =
-          targetBaseInterval * phaseModifier * intensityModifier;
+          // Simple Pattern Generation (Loop of 4 beats)
+          // Beat 0: Ground Obstacle
+          // Beat 1: Air Obstacle (Flying)
+          // Beat 2: Ground Obstacle
+          // Beat 3: Obstacle (Rest removed)
 
-        // Clamp min/max
-        finalTargetInterval = Math.max(25, Math.min(200, finalTargetInterval));
+          const patternStep = obstacleBeatIndex % 4;
 
-        // 5. Smooth Interpolation (Lerp)
-        // Smoothly move current interval towards target to avoid jarring jumps
-        currentSpawnInterval +=
-          (finalTargetInterval - currentSpawnInterval) * 0.05;
+          // Add some randomness so it's not 100% predictable every loop
+          const variation = Math.random();
 
-        if (spawnTimer > currentSpawnInterval) {
-          if (Math.random() > 0.2) spawnObstacle();
-          spawnTimer = 0; // Reset timer
+          // Spawn obstacle on every beat to avoid empty windows
+          spawnObstacle();
+
+          // Additional logic for collectibles on the 4th beat
+          if (patternStep === 3) {
+            if (variation > 0.7) spawnCollectible();
+          }
         }
 
         obstacles.forEach((obs, index) => {
-          obs.update();
+          obs.update(deltaTimeMultiplier);
           obs.draw();
 
           // Collision
           if (!obs.markedForDeletion && checkCollision(player, obs, -10)) {
-            if (!hasShield) {
+            if (player.isDashing) {
+              // DASH SMASH!
+              obs.markedForDeletion = true;
+              createParticles(
+                obs.x + obs.width / 2,
+                obs.y + obs.height / 2,
+                20,
+                COLORS.blue
+              );
+              createFloatingText(
+                "SMASH!",
+                player.x,
+                player.y - 40,
+                COLORS.blue
+              );
+              score += 150;
+              updateCombo(true);
+              playSound("powerup");
+            } else if (!hasShield) {
               updateCombo(false); // Reset combo on hit
               battery--;
               updateBattery();
@@ -2049,6 +2488,10 @@
               // Screen shake or flash
               canvas.style.transform = "translate(5px, 5px)";
               setTimeout(() => (canvas.style.transform = "none"), 100);
+
+              // Muffle Music
+              setMusicMuffled(true);
+              setTimeout(() => setMusicMuffled(false), 500);
 
               if (battery <= 0) {
                 gameOver();
@@ -2071,12 +2514,13 @@
         });
 
         // Collectibles
-        if (frameCount % 300 === 0) {
+        if (frameCount % 300 < 1 * deltaTimeMultiplier) {
+          // Adjusted for float
           spawnCollectible();
         }
 
         collectibles.forEach((col, index) => {
-          col.update();
+          col.update(deltaTimeMultiplier);
           col.draw();
 
           if (!col.markedForDeletion && checkCollision(player, col, -5)) {
@@ -2115,7 +2559,7 @@
 
         // Update Floating Texts
         floatingTexts.forEach((ft) => {
-          ft.update();
+          ft.update(deltaTimeMultiplier);
           ft.draw();
         });
         floatingTexts = floatingTexts.filter((ft) => !ft.markedForDeletion);
@@ -2123,7 +2567,7 @@
         // Particles (Optimized with Object Pool)
         for (let i = particles.length - 1; i >= 0; i--) {
           let p = particles[i];
-          p.update();
+          p.update(deltaTimeMultiplier);
           p.draw();
           if (p.markedForDeletion) {
             particlePool.release(p);
@@ -2139,11 +2583,15 @@
         // particles cleanup is done in the loop above
 
         // Game Speed increment
-        if (frameCount % 600 === 0) gameSpeed += 0.5;
+        if (frameCount % 600 < 1 * deltaTimeMultiplier) gameSpeed += 0.5;
 
         score++;
-        if (frameCount % 10 === 0) scoreEl.innerText = score;
-        frameCount++;
+        if (frameCount % 10 < 1 * deltaTimeMultiplier)
+          scoreEl.innerText = score;
+        frameCount += deltaTimeMultiplier;
+        if (isPulse) {
+          ctx.restore();
+        }
 
         requestAnimationFrame(animate);
       }
