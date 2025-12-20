@@ -93,7 +93,8 @@
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1.5rem;
-        height: 600px;
+        height: 70vh; /* 使用视口高度，确保在不同屏幕上都有合适高度 */
+        min-height: 500px;
       }
 
       @media (max-width: 768px) {
@@ -125,6 +126,7 @@
         flex: 1;
         width: 100%;
         padding: 1rem;
+        padding-bottom: 5rem; /* 增加底部间距，防止被遮挡感 */
         border: 1px solid #ddd;
         border-radius: 8px;
         resize: none;
@@ -143,6 +145,7 @@
       #preview {
         flex: 1;
         padding: 1rem;
+        padding-bottom: 5rem; /* 增加底部间距，防止被遮挡感 */
         border: 1px solid #ddd;
         border-radius: 8px;
         overflow-y: auto;
@@ -254,9 +257,9 @@
       footer {
         background-color: #2d3436;
         color: white;
-        padding: 1.5rem 0;
+        padding: 2rem 0;
         text-align: center;
-        margin-top: 2rem;
+        margin-top: 4rem; /* 增加与上方内容的间距 */
       }
     </style>
   </head>
@@ -271,6 +274,27 @@
 
     <main class="container">
       <div class="tool-card">
+        <div
+          class="actions"
+          style="
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            justify-content: flex-start;
+          "
+        >
+          <button class="btn btn-secondary" id="paste-btn">
+            <i class="fas fa-paste"></i> 粘贴内容
+          </button>
+          <button class="btn btn-primary" id="copy-btn">
+            <i class="fas fa-copy"></i> 复制为富文本 (可直接粘贴到 Word)
+          </button>
+          <button class="btn btn-primary" id="copy-img-btn">
+            <i class="fas fa-image"></i> 复制为图片
+          </button>
+          <button class="btn btn-secondary" id="clear-btn">
+            <i class="fas fa-trash"></i> 清空内容
+          </button>
+        </div>
         <div class="editor-container">
           <div class="panel">
             <div class="panel-header">
@@ -290,17 +314,6 @@
             <div id="preview" class="markdown-body"></div>
           </div>
         </div>
-        <div class="actions">
-          <button class="btn btn-secondary" id="paste-btn">
-            <i class="fas fa-paste"></i> 粘贴内容
-          </button>
-          <button class="btn btn-primary" id="copy-btn">
-            <i class="fas fa-copy"></i> 复制为富文本 (可直接粘贴到 Word)
-          </button>
-          <button class="btn btn-secondary" id="clear-btn">
-            <i class="fas fa-trash"></i> 清空内容
-          </button>
-        </div>
       </div>
 
       <div class="tool-card">
@@ -311,25 +324,23 @@
           <li>支持 <b>代码高亮</b>、表格、列表等 Markdown 语法。</li>
           <li>
             点击“复制为富文本”后，可直接粘贴到
-            Word、飞书、钉钉等文档编辑器中，保持格式完美。
+            Word等文档编辑器中，保持格式完美。
           </li>
         </ul>
       </div>
     </main>
 
-    <footer>
-      <p>© 2025 天空之城 - 多功能工具集</p>
-    </footer>
-
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <script>
       const input = document.getElementById("input");
       const preview = document.getElementById("preview");
       const copyBtn = document.getElementById("copy-btn");
+      const copyImgBtn = document.getElementById("copy-img-btn");
       const pasteBtn = document.getElementById("paste-btn");
       const clearBtn = document.getElementById("clear-btn");
       const charCount = document.getElementById("char-count");
@@ -344,6 +355,8 @@
         // 预处理：防止 marked 吞掉数学公式的反斜杠
         text = text.replace(/\\\[/g, "\\\\[").replace(/\\\]/g, "\\\\]");
         text = text.replace(/\\\(/g, "\\\\(").replace(/\\\)/g, "\\\\)");
+        // 解决 · 符号在公式中可能被误解析为 \cdotp 并与后续字符连读的问题（如 J·s 变成 J\cdotps）
+        text = text.replace(/·([a-zA-Z])/g, "· $1");
 
         // 渲染 Markdown
         preview.innerHTML = marked.parse(text);
@@ -462,6 +475,70 @@
         } catch (err) {
           console.error("复制失败:", err);
           alert("复制失败，请手动选择预览内容进行复制。");
+        }
+      });
+
+      copyImgBtn.addEventListener("click", async () => {
+        if (!input.value.trim()) {
+          alert("请先输入内容");
+          return;
+        }
+
+        const originalBtnText = copyImgBtn.innerHTML;
+        copyImgBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> 生成图片中...';
+        copyImgBtn.disabled = true;
+
+        try {
+          // 使用 html2canvas 捕捉预览区域
+          // 注意：为了捕捉完整内容，我们需要临时处理滚动条
+          const canvas = await html2canvas(preview, {
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            scale: 2, // 提高清晰度
+            height: preview.scrollHeight,
+            windowHeight: preview.scrollHeight,
+            onclone: (clonedDoc) => {
+              const clonedPreview = clonedDoc.getElementById("preview");
+              clonedPreview.style.height = "auto";
+              clonedPreview.style.overflow = "visible";
+              clonedPreview.style.paddingBottom = "20px"; // 保持一点间距
+            },
+          });
+
+          canvas.toBlob(async (blob) => {
+            try {
+              const data = [new ClipboardItem({ "image/png": blob })];
+              await navigator.clipboard.write(data);
+
+              copyImgBtn.innerHTML = '<i class="fas fa-check"></i> 已复制图片';
+              copyImgBtn.classList.replace("btn-primary", "btn-secondary");
+
+              setTimeout(() => {
+                copyImgBtn.innerHTML = originalBtnText;
+                copyImgBtn.classList.replace("btn-secondary", "btn-primary");
+                copyImgBtn.disabled = false;
+              }, 2000);
+            } catch (err) {
+              console.error("图片复制到剪贴板失败:", err);
+              alert(
+                "图片生成成功，但无法自动复制到剪贴板，请尝试右键保存图片。"
+              );
+              // 降级方案：下载图片
+              const link = document.createElement("a");
+              link.download = "markdown-render.png";
+              link.href = canvas.toDataURL();
+              link.click();
+
+              copyImgBtn.innerHTML = originalBtnText;
+              copyImgBtn.disabled = false;
+            }
+          }, "image/png");
+        } catch (err) {
+          console.error("生成图片失败:", err);
+          alert("生成图片失败，请重试。");
+          copyImgBtn.innerHTML = originalBtnText;
+          copyImgBtn.disabled = false;
         }
       });
 
