@@ -355,6 +355,15 @@
         // 预处理：防止 marked 吞掉数学公式的反斜杠
         text = text.replace(/\\\[/g, "\\\\[").replace(/\\\]/g, "\\\\]");
         text = text.replace(/\\\(/g, "\\\\(").replace(/\\\)/g, "\\\\)");
+
+        // 解决 \text{} 内部不支持 \cdot, \cdotp, \/ 等命令的问题
+        // 很多 AI 会输出 \text{J\cdot s} 或 \text{H\/m}，这在 KaTeX 中会报错
+        text = text.replace(/\\text\s*\{([^{}]*)\}/g, (match, p1) => {
+          return `\\text{${p1
+            .replace(/\\cdotp?/g, "·")
+            .replace(/\\\//g, "/")}}`;
+        });
+
         // 解决 · 符号在公式中可能被误解析为 \cdotp 并与后续字符连读的问题（如 J·s 变成 J\cdotps）
         text = text.replace(/·([a-zA-Z])/g, "· $1");
 

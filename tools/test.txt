@@ -1,0 +1,321 @@
+好的，我将所有知识点、核心公式以及**针对你试卷的补充推导**整合成一份完整、条理清晰的 **《大学物理（下）复习总纲》**。这份资料旨在帮助你高效覆盖所有考点。
+
+---
+
+## **大学物理（下）核心知识点与公式总纲**
+
+### **第一部分：电磁学 (Electromagnetism)**
+
+#### **1. 稳恒磁场**
+**核心公式：**
+- **毕奥-萨伐尔定律（电流元）**：
+  \[
+  d\vec{B} = \frac{\mu_0}{4\pi} \frac{I d\vec{l} \times \vec{r}}{r^3}
+  \]
+- **几种典型磁场分布**：
+  - 无限长直导线（距离 \(r\)）：
+    \[
+    B = \frac{\mu_0 I}{2\pi r}
+    \]
+  - 圆电流中心（半径 \(R\)）：
+    \[
+    B = \frac{\mu_0 I}{2R}
+    \]
+  - 长直螺线管内部（\(n\)为单位长度匝数）：
+    \[
+    B = \mu_0 n I
+    \]
+- **安培环路定理**：
+  \[
+  \oint_L \vec{B} \cdot d\vec{l} = \mu_0 \sum I_{内}
+  \]
+
+#### **2. 磁场对电流/运动电荷的作用**
+- **安培力**：
+  \[
+  d\vec{F} = I d\vec{l} \times \vec{B}， \quad \vec{F} = I \vec{L} \times \vec{B} \text{（直导线）}
+  \]
+- **磁力矩（载流线圈）**：
+  \[
+  \vec{M} = \vec{m} \times \vec{B}， \quad \text{磁矩 } \vec{m} = N I \vec{S}
+  \]
+  \[
+  M = mB\sin\theta
+  \]
+- **磁力的功**：
+  \[
+  A = I \Delta \Phi_m
+  \]
+  *说明：当电流恒定时，磁力做功等于电流乘以磁通量的变化。*
+- **洛伦兹力**：
+  \[
+  \vec{F} = q \vec{v} \times \vec{B}
+  \]
+
+#### **3. 电磁感应**
+- **法拉第电磁感应定律**：
+  \[
+  \mathcal{E} = -\frac{d\Phi_m}{dt}
+  \]
+- **动生电动势**：
+  \[
+  \mathcal{E} = \int (\vec{v} \times \vec{B}) \cdot d\vec{l}
+  \]
+  *特例：直导体棒（长 \(L\)，速度 \(v \perp B\)）：* \(\mathcal{E} = BLv\)
+- **感生电动势与涡旋电场**：
+  \[
+  \oint_L \vec{E}_v \cdot d\vec{l} = -\frac{d}{dt} \iint_S \vec{B} \cdot d\vec{S}
+  \]
+  *特例：轴对称变化磁场（半径 \(r\)）*：
+  \[
+  E_v = \begin{cases}
+    -\frac{r}{2} \frac{dB}{dt} & (r < R)\\
+    -\frac{R^2}{2r} \frac{dB}{dt} & (r > R)
+  \end{cases}
+  \]
+
+#### **4. 自感、互感与磁能**
+- **自感电动势与自感系数 \(L\)**：
+  \[
+  \mathcal{E}_L = -L \frac{dI}{dt}, \quad \Phi_m = LI
+  \]
+- **互感电动势与互感系数 \(M\)**：
+  \[
+  \mathcal{E}_{12} = -M \frac{dI_2}{dt}
+  \]
+- **磁能密度与磁能**：
+  \[
+  w_m = \frac{B^2}{2\mu} = \frac{1}{2} \mu H^2
+  \]
+  \[
+  W_m = \iiint_V w_m dV = \frac{1}{2} LI^2
+  \]
+
+#### **5. 位移电流与麦克斯韦方程组**
+- **位移电流密度**：
+  \[
+  \vec{j}_d = \frac{\partial \vec{D}}{\partial t}
+  \]
+- **全电流定律（麦克斯韦-安培定律）**：
+  \[
+  \oint_L \vec{H} \cdot d\vec{l} = \iint_S (\vec{j}_c + \frac{\partial \vec{D}}{\partial t}) \cdot d\vec{S}
+  \]
+  *物理意义：变化的电场可以激发磁场。*
+- **平面电磁波性质**：
+  - \(E = cB\)，波速 \(c = 1/\sqrt{\mu_0 \epsilon_0}\)
+  - 传播方向 \(\vec{k} \perp \vec{E} \perp \vec{B}\)
+
+---
+
+### **第二部分：光学 (Optics)**
+
+#### **1. 光的干涉**
+- **光程与光程差**：
+  \[
+  \Delta L = \sum n_i l_i， \quad \Delta \phi = \frac{2\pi}{\lambda} \Delta L
+  \]
+- **杨氏双缝干涉**：
+  - 明纹：\(d \sin\theta = k\lambda\)，暗纹：\(d \sin\theta = (k+\frac{1}{2})\lambda\)
+  - 屏幕上条纹间距：\(\Delta x = \frac{D \lambda}{d}\)
+- **薄膜干涉（反射光）**：
+  - **等厚干涉（劈尖、牛顿环）**：
+    \[
+    2n e + \frac{\lambda}{2} = \begin{cases}
+      k\lambda & \text{明纹}\\
+      (k+\frac{1}{2})\lambda & \text{暗纹}
+    \end{cases}
+    \]
+    *说明：\(n\) 为膜折射率，考虑半波损失时加 \(\lambda/2\)。*
+  - **劈尖干涉补充**：
+    - 相邻明（暗）纹对应厚度差：\(\Delta e = \frac{\lambda}{2n}\)
+    - 条纹间距：\(\Delta x = \frac{\lambda}{2n\theta} \approx \frac{\lambda L}{2nd}\)（\(\theta \approx d/L\)）
+    - 明纹总数（取整）：\(N = \frac{2nd}{\lambda} + 1\)
+  - **牛顿环补充（充液）**：
+    - 空气中第 \(m\) 级暗环半径：\(r_m = \sqrt{mR\lambda}\)
+    - 充液（折射率 \(n\)）后：\(r_m' = \sqrt{\frac{mR\lambda}{n}}\)
+    - 半径变为原来的 \(1/\sqrt{n}\) 倍。
+- **迈克尔逊干涉仪**：
+  - 光程差变化：\(\Delta (\Delta L) = 2 \Delta d\)
+  - 条纹移动数 \(N\)：\(2\Delta d = N\lambda\)
+
+#### **2. 光的衍射**
+- **单缝夫琅禾费衍射**：
+  - 暗纹：\(a \sin\theta = k\lambda \quad (k=\pm1,\pm2,...)\)
+  - 中央明纹半角宽：\(\theta \approx \frac{\lambda}{a}\)
+  - 中央明纹线宽：\(\Delta x_0 = \frac{2f\lambda}{a}\)
+- **圆孔衍射与分辨本领（瑞利判据）**：
+  \[
+  \theta_{\min} = 1.22 \frac{\lambda}{D}
+  \]
+  *应用：人眼分辨汽车两前灯的最小间距 \(l_{\min} = S \cdot \theta_{\min}\)。*
+- **光栅衍射**：
+  - 光栅方程（主极大）：\(d \sin\theta = k\lambda\)
+  - 缺级条件：当 \(a \sin\theta = k'\lambda\) 时，\(k = \frac{d}{a} k'\) 级缺级。
+  - 能观察到的最高级次：\(k_{\max} = \left\lfloor \frac{d}{\lambda}(1+\sin i) \right\rfloor\)（斜入射时）
+
+#### **3. 光的偏振**
+- **马吕斯定律**：
+  \[
+  I = I_0 \cos^2\theta
+  \]
+- **布儒斯特定律**：
+  \[
+  \tan i_B = \frac{n_2}{n_1}
+  \]
+  *此时反射光为完全线偏振光（垂直于入射面）。*
+- **偏振光混合通过偏振片**：
+  - 设入射光中线偏振光强 \(I_p\)，自然光强 \(I_n\)。
+  - 通过偏振片后，自然光强变为 \(I_n/2\)。
+  - 最大透射光强：\(I_{\max} = I_p + I_n/2\)
+  - 最小透射光强：\(I_{\min} = I_n/2\)
+  - 若 \(I_{\max} = 2 I_{\min}\)，则 \(I_p = I_n/2\)。
+
+---
+
+### **第三部分：近代物理 (Modern Physics)**
+
+#### **1. 量子光学**
+- **光电效应**：
+  - 爱因斯坦方程：\(h\nu = A + \frac{1}{2}mv_m^2\)
+  - 逸出功 \(A = h\nu_0 = \frac{hc}{\lambda_0}\)（\(\lambda_0\) 为红限波长）
+  - 遏止电压：\(eU_a = \frac{1}{2}mv_m^2 = h\nu - A\)
+- **康普顿散射**：
+  \[
+  \Delta \lambda = \lambda' - \lambda = \frac{h}{m_0 c}(1 - \cos\theta)
+  \]
+
+#### **2. 黑体辐射**
+- **斯特藩-玻尔兹曼定律**：
+  \[
+  E = \sigma T^4， \quad \sigma = 5.67 \times 10^{-8} \, \text{W·m}^{-2}·\text{K}^{-4}
+  \]
+- **维恩位移定律**：
+  \[
+  \lambda_m T = b， \quad b = 2.897 \times 10^{-3} \, \text{m·K}
+  \]
+  *应用：已知太阳温度 \(T\) 和地球距离 \(d\)，求地面单位面积辐射能*：
+  \[
+  E_{\text{地面}} = \frac{R_s^2}{d^2} \cdot \sigma T^4 = \frac{D^2}{4d^2} \sigma T^4
+  \]
+
+#### **3. 玻尔氢原子理论**
+- **能级公式**：
+  \[
+  E_n = -\frac{13.6}{n^2} \, \text{eV}
+  \]
+  *第一激发态对应 \(n=2\)。*
+- **跃迁辐射光子能量**：
+  \[
+  h\nu = E_i - E_f
+  \]
+- **激发能**：从基态（\(n=1\)）激发到某能态所需的能量。
+
+#### **4. 德布罗意波与不确定关系**
+- **德布罗意波长**：
+  \[
+  \lambda = \frac{h}{p} = \frac{h}{\sqrt{2mE_k}} \quad (\text{非相对论})
+  \]
+  *特例：α粒子（\(q=2e\)）在磁场中做圆周运动*：
+  \[
+  qvB = \frac{mv^2}{R} \Rightarrow p = qBR \Rightarrow \lambda = \frac{h}{2eBR}
+  \]
+- **不确定关系**：
+  - 位置-动量：\(\Delta x \cdot \Delta p_x \geq \frac{\hbar}{2}\)
+  - 能量-时间：\(\Delta E \cdot \Delta t \geq \frac{\hbar}{2}\)
+    *应用：激发态能级宽度 \(b\) 与平均寿命 \(\tau\) 满足 \(\tau \approx \frac{\hbar}{b}\)。*
+
+---
+
+### **第四部分：试卷中特殊题型的补充推导**
+
+#### **1. 同轴电缆单位长度自感**
+- **磁场分布**：
+  \[
+  B(r) = \begin{cases}
+    \frac{\mu_0 I r}{2\pi R_1^2} & (0 < r < R_1)\\
+    \frac{\mu_0 I}{2\pi r} & (R_1 < r < R_2)\\
+    0 & (r > R_2)
+  \end{cases}
+  \]
+- **单位长度磁能**：
+  \[
+  W_m = \int_0^{R_1} \frac{B^2}{2\mu_0} 2\pi r dr + \int_{R_1}^{R_2} \frac{B^2}{2\mu_0} 2\pi r dr
+    = \frac{\mu_0 I^2}{16\pi} + \frac{\mu_0 I^2}{4\pi} \ln\frac{R_2}{R_1}
+  \]
+- **单位长度自感**：
+  \[
+  L = \frac{2W_m}{I^2} = \frac{\mu_0}{8\pi} + \frac{\mu_0}{2\pi} \ln\frac{R_2}{R_1}
+  \]
+
+#### **2. 转动圆盘在磁场中受磁力矩**
+- **面电荷密度 \(\sigma\)，角速度 \(\omega\)**
+  - 圆环电流：\(dI = \sigma \cdot 2\pi r dr \cdot \frac{\omega}{2\pi} = \sigma \omega r dr\)
+  - 圆环磁矩：\(dm = \pi r^2 dI = \pi \sigma \omega r^3 dr\)
+  - 磁力矩元（磁场 \(B\) 垂直于转轴）：
+    \[
+    dM = dm \cdot B \sin 90^\circ = \pi \sigma \omega B r^3 dr
+    \]
+  - 总力矩：
+    \[
+    M = \int_0^R \pi \sigma \omega B r^3 dr = \frac{\pi}{4} \sigma \omega B R^4
+    \]
+
+#### **3. 金属棒在磁场中转动切割**
+- **动生电动势**（棒长 \(L\)，角速度 \(\omega\)）：
+  \[
+  \mathcal{E} = \int_0^L B v(r) dr = \int_0^L B (\omega r) dr = \frac{1}{2} B \omega L^2
+  \]
+- **磁力矩**（阻力矩）：
+  \[
+  M_B = -\frac{B^2 L^4 \omega}{4R}
+  \]
+- **角速度随时间衰减**：
+  \[
+  J \frac{d\omega}{dt} = M_B \Rightarrow \omega(t) = \omega_0 e^{-t/\tau}, \quad \tau = \frac{4JR}{B^2 L^4}
+  \]
+- **总转过的角度**：
+  \[
+  \theta = \int_0^\infty \omega(t) dt = \omega_0 \tau
+  \]
+
+#### **4. 导体球与球壳系统的电能与电容**
+- **系统结构**：内球半径 \(R_1\)，球壳内半径 \(R_2\)、外半径 \(R_3\)，内球带电量 \(Q\)。
+- **电场分布（球壳外介质介电常数 \(\epsilon\)）**：
+  \[
+  E(r) = \begin{cases}
+    0 & (r < R_1)\\
+    \frac{Q}{4\pi\epsilon_0 r^2} & (R_1 < r < R_2)\\
+    0 & (R_2 < r < R_3)\\
+    \frac{Q}{4\pi\epsilon r^2} & (r > R_3)
+  \end{cases}
+  \]
+- **系统电能**：
+  \[
+  W_e = \int_{R_1}^{R_2} \frac{1}{2} \epsilon_0 E^2 4\pi r^2 dr + \int_{R_3}^{\infty} \frac{1}{2} \epsilon E^2 4\pi r^2 dr
+    = \frac{Q^2}{8\pi\epsilon_0} \left( \frac{1}{R_1} - \frac{1}{R_2} \right) + \frac{Q^2}{8\pi\epsilon} \frac{1}{R_3}
+  \]
+- **电容**：\(C = \frac{Q^2}{2W_e}\)（根据 \(W_e = Q^2/(2C)\) 反推）。
+
+---
+
+### **第五部分：常用物理常数速查**
+
+| 常数 | 符号 | 数值与单位 |
+|------|------|------------|
+| 真空磁导率 | \(\mu_0\) | \(4\pi \times 10^{-7} \, \text{H/m}\) |
+| 真空介电常数 | \(\epsilon_0\) | \(8.85 \times 10^{-12} \, \text{F/m}\) |
+| 电子电荷 | \(e\) | \(1.60 \times 10^{-19} \, \text{C}\) |
+| 电子静质量 | \(m_e\) | \(9.11 \times 10^{-31} \, \text{kg}\) |
+| 普朗克常数 | \(h\) | \(6.626 \times 10^{-34} \, \text{J·s}\) |
+| | \(\hbar = h/(2\pi)\) | \(1.055 \times 10^{-34} \, \text{J·s}\) |
+| 真空中光速 | \(c\) | \(3.00 \times 10^8 \, \text{m/s}\) |
+| 里德伯能量 | \(E_1\) | \(-13.6 \, \text{eV}\) |
+| 斯特藩常数 | \(\sigma\) | \(5.67 \times 10^{-8} \, \text{W·m}^{-2}·\text{K}^{-4}\) |
+| 维恩位移常数 | \(b\) | \(2.897 \times 10^{-3} \, \text{m·K}\) |
+| 1 eV 能量 | | \(1.60 \times 10^{-19} \, \text{J}\) |
+
+---
+
+这份总纲几乎覆盖了你提供的所有试卷题目所涉及的知识点和公式。在复习时，建议你先理解每个公式的**物理意义和适用条件**，然后结合具体题目进行练习。
+
+如果需要我针对某类题型（例如“所有光栅题目”或“所有氢原子跃迁题目”）整理出**解题步骤模板**，我也可以为你进一步整理。
