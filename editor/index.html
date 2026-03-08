@@ -13,6 +13,7 @@
             --btn-bg: #3c3c3c;
             --btn-hover: #505050;
             --border-color: #444;
+            --success-color: #28a745;
         }
 
         body.light-mode {
@@ -34,7 +35,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* 防止整体滚动 */
+            overflow: hidden;
         }
 
         /* 顶部导航栏 */
@@ -52,7 +53,7 @@
         .logo { font-weight: bold; font-size: 1.1rem; color: var(--accent-color); }
         .logo span { color: var(--text-color); font-size: 0.9rem; margin-left: 5px; opacity: 0.7;}
 
-        .actions { display: flex; gap: 10px; }
+        .actions { display: flex; gap: 8px; }
 
         button {
             background-color: var(--btn-bg);
@@ -66,10 +67,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            white-space: nowrap;
         }
 
         button:hover { background-color: var(--btn-hover); }
-        button:active { transform: scale(0.98); }
+        button:active { transform: scale(0.96); }
 
         /* 编辑器主体 */
         #editor-container {
@@ -91,13 +93,12 @@
             display: flex;
             align-items: center;
             padding: 0 10px;
-            overflow-x: auto; /* 支持横向滚动 */
+            overflow-x: auto;
             white-space: nowrap;
             flex-shrink: 0;
-            -webkit-overflow-scrolling: touch; /* iOS顺滑滚动 */
+            -webkit-overflow-scrolling: touch;
         }
         
-        /* 隐藏滚动条但保留功能 */
         .quick-bar::-webkit-scrollbar { height: 4px; }
         .quick-bar::-webkit-scrollbar-thumb { background: #666; border-radius: 2px; }
 
@@ -117,21 +118,25 @@
             top: 60px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(40, 167, 69, 0.9);
+            background-color: var(--success-color);
             color: white;
-            padding: 8px 16px;
+            padding: 8px 20px;
             border-radius: 20px;
             font-size: 0.9rem;
+            font-weight: 500;
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.3s, transform 0.3s;
             pointer-events: none;
             z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
 
-        /* 移动端适配调整 */
-        @media (max-width: 600px) {
-            .logo span { display: none; } /* 手机上隐藏副标题 */
-            .btn-text { display: none; } /* 手机上隐藏按钮文字，只留图标(如果有)或简写 */
+        /* 移动端适配 */
+        @media (max-width: 650px) {
+            .logo span { display: none; }
+            .btn-text { display: none; } /* 窄屏隐藏文字 */
+            .actions { gap: 5px; }
+            button { padding: 6px 10px; }
             #editor { font-size: 14px; }
         }
     </style>
@@ -141,11 +146,20 @@
     <header>
         <div class="logo">C++ Editor<span>Pro</span></div>
         <div class="actions">
-            <button onclick="toggleTheme()" title="切换主题">🌗</button>
+            <button onclick="toggleTheme()" title="切换明亮/暗黑主题">🌗</button>
             <button onclick="changeFontSize(1)" title="放大字体">A+</button>
             <button onclick="changeFontSize(-1)" title="缩小字体">A-</button>
-            <button onclick="downloadCode()" title="下载代码">⬇ <span class="btn-text">下载</span></button>
-            <button onclick="copyCode()" style="background-color: var(--accent-color); color: #000; font-weight: bold;">📋 <span class="btn-text">复制</span></button>
+            
+            <button onclick="formatCode()" title="格式化代码 (Shift+Alt+F)">
+                🧹 <span class="btn-text">格式化</span>
+            </button>
+            
+            <button onclick="downloadCode()" title="下载 .cpp 文件">
+                ⬇ <span class="btn-text">下载</span>
+            </button>
+            <button onclick="copyCode()" style="background-color: var(--accent-color); color: #000; font-weight: bold; border-color: var(--accent-color);">
+                📋 <span class="btn-text">复制</span>
+            </button>
         </div>
     </header>
 
@@ -155,14 +169,17 @@
 using namespace std;
 
 int main() {
-    cout << "Hello, World!" << endl;
+    // 试试打乱缩进，然后点击上方的“格式化”按钮
+int a=10;
+      if(a>5){
+cout<<"Hello World!"<<endl;
+}
     return 0;
 }
 </div>
     </div>
 
-    <div class="quick-bar" id="quickBar">
-        </div>
+    <div class="quick-bar" id="quickBar"></div>
 
     <div id="toast">已复制到剪贴板！</div>
 
@@ -170,6 +187,7 @@ int main() {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/mode-c_cpp.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/theme-monokai.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/theme-chrome.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ext-beautify.min.js"></script>
 
     <script>
         // 1. 初始化编辑器
@@ -177,19 +195,40 @@ int main() {
         editor.setTheme("ace/theme/monokai");
         editor.session.setMode("ace/mode/c_cpp");
         
-        // 配置编辑器选项
         editor.setOptions({
             enableBasicAutocompletion: true,
             enableLiveAutocompletion: true,
             fontSize: "16px",
-            showPrintMargin: false, // 隐藏打印边距线
-            wrap: true, // 自动换行
+            showPrintMargin: false,
+            wrap: true,
             tabSize: 4,
-            useSoftTabs: true
+            useSoftTabs: true,
+            displayIndentGuides: true, // 显示缩进辅助线
+            fontFamily: "Menlo, 'Ubuntu Mono', Consolas, 'Courier New', monospace" // 优化代码字体
         });
 
-        // 2. 快捷符号配置
-        // 你可以在这里添加更多你需要的符号
+        // 2. 核心功能：代码格式化
+        function formatCode() {
+            // 获取 beautify 扩展
+            var beautify = ace.require("ace/ext/beautify");
+            if (beautify) {
+                beautify.beautify(editor.session);
+                showToast("代码已格式化 ✨");
+            } else {
+                showToast("格式化插件加载失败");
+            }
+        }
+
+        // 绑定快捷键 (Shift + Alt + F)
+        editor.commands.addCommand({
+            name: 'formatCode',
+            bindKey: {win: 'Shift-Alt-F', mac: 'Shift-Option-F'},
+            exec: function(editor) {
+                formatCode();
+            }
+        });
+
+        // 3. 快捷符号配置
         const symbols = [
             '"', "'", ';', ':', 
             '(', ')', '{', '}', '[', ']', 
@@ -198,46 +237,32 @@ int main() {
         ];
 
         const quickBar = document.getElementById('quickBar');
-
-        // 动态生成符号按钮
         symbols.forEach(char => {
             const btn = document.createElement('button');
             btn.className = 'symbol-btn';
             btn.textContent = char;
-            // 点击事件：插入符号
             btn.addEventListener('click', (e) => {
-                e.preventDefault(); // 防止失去焦点
+                e.preventDefault();
                 insertSymbol(char);
             });
             quickBar.appendChild(btn);
         });
 
-        // 插入符号的核心逻辑
         function insertSymbol(char) {
             editor.insert(char);
-            editor.focus(); // 保持焦点在编辑器上
-            
-            // 可选优化：如果是成对符号（如引号、括号），光标自动回退一格
-            // 简单的判断逻辑
-            /*
-            if (['"', "'", '(', '{', '['].includes(char)) {
-                // 如果需要自动补全另一半，可以在这里写逻辑
-                // 目前 Ace 默认配置通常会自动补全右括号，所以只插入左边即可触发
-            }
-            */
+            editor.focus();
         }
 
-        // 3. 复制代码功能
+        // 4. 通用工具函数
         function copyCode() {
             const code = editor.getValue();
             navigator.clipboard.writeText(code).then(() => {
                 showToast("代码已复制！");
-            }).catch(err => {
+            }).catch(() => {
                 showToast("复制失败，请手动复制");
             });
         }
 
-        // 4. 下载代码功能
         function downloadCode() {
             const code = editor.getValue();
             const blob = new Blob([code], { type: 'text/plain' });
@@ -249,7 +274,6 @@ int main() {
             window.URL.revokeObjectURL(url);
         }
 
-        // 5. 字号调整
         function changeFontSize(delta) {
             let currentSize = parseInt(editor.getFontSize());
             let newSize = currentSize + delta;
@@ -258,7 +282,6 @@ int main() {
             }
         }
 
-        // 6. 主题切换 (明亮/暗黑)
         let isDarkMode = true;
         function toggleTheme() {
             isDarkMode = !isDarkMode;
@@ -271,17 +294,18 @@ int main() {
             }
         }
 
-        // Toast 提示显示逻辑
         function showToast(msg) {
             const toast = document.getElementById('toast');
             toast.textContent = msg;
             toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            
             setTimeout(() => {
                 toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(10px)';
             }, 2000);
         }
 
-        // 监听窗口大小变化，确保编辑器重新渲染
         window.addEventListener('resize', function() {
             editor.resize();
         });
